@@ -3,7 +3,7 @@
 return array(
     'controllers' => array(
         'invokables' => array(
-            'AtDataGrid\Controller\DataGrid'  => 'AtDataGrid\Controller\DataGridController'
+            'ZfJoacubCrud\Controller\DataGrid'  => 'ZfJoacubCrud\Controller\DataGridController'
         ),
     ),
 

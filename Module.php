@@ -1,6 +1,6 @@
 <?php
 
-namespace AtDataGrid;
+namespace ZfJoacubCrud;
 
 class Module
 {
