@@ -1,15 +1,15 @@
 {
-    "name": "atukai/at-datagrid",
+    "name": "joacub/zf-joacub-crud",
     "description": "A data grid ZF2 module",
     "type": "library",
     "keywords": [
-        "grid", "datagrid", "AtDataGrid", "atukai", "at", "zf2"
+        "grid", "datagrid", "zf2 crud module", "joacub", "at", "zf2"
     ],
-    "homepage": "https://github.com/atukai/AtDataGrid",
+    "homepage": "https://github.com/joacub",
     "authors": [
         {
-            "name": "Alexander Tukai",
-            "email": "atukai@gmail.com"
+            "name": "Johan",
+            "email": "joacub@gmail.com"
         }
     ],
     "require": {
