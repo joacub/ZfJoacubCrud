@@ -5,6 +5,9 @@ namespace ZfJoacubCrud\Controller;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 use ZfJoacubCrud\DataGrid;
+use Zend\Debug\Debug;
+use ZfJoacubCrud\DataGrid\DataSource\DoctrineDbTableGateway;
+use Nette\Diagnostics\Debugger;
 
 class DataGridController extends AbstractActionController
 {
@@ -46,7 +49,7 @@ class DataGridController extends AbstractActionController
 
             return $viewModel;
         } else {
-            $this->_forward($_POST['cmd']);
+            return $this->forward()->dispatch($this->params('controller'), array('action' => $this->params()->fromPost('cmd')));
         }
     }
 
@@ -68,15 +71,22 @@ class DataGridController extends AbstractActionController
         $form = $grid->getForm();
         $form->setData($requestParams);
 
-        if ($form->isValid()) {
+        if ($this->getRequest()->isPost() && $form->isValid()) {
             $formData = $this->preSave($form);
             $itemId = $grid->save($formData);
+            
+            if($grid->getDataSource() instanceof DoctrineDbTableGateway) {
+                $grid->getDataSource()->getEm()->flush();
+            }
+            
             $this->postSave($grid, $itemId);
 
             $this->backTo()->goBack('Record created.');
         }
 
-        $viewModel = new ViewModel(array('grid' => $grid));
+        $backUrl = $this->backTo()->getBackUrl(false);
+        
+        $viewModel = new ViewModel(array('grid' => $grid, 'backUrl' => $backUrl));
         $viewModel->setTemplate('at-datagrid/create');
 
         return $viewModel;
@@ -88,7 +98,7 @@ class DataGridController extends AbstractActionController
      */
     public function editAction()
     {
-        //$this->view->backUrl = $this->_helper->backToUrl->getBackUrl(false);
+        $backUrl = $this->backTo()->getBackUrl(false);
 
         $grid = $this->getGrid();
 
@@ -107,15 +117,25 @@ class DataGridController extends AbstractActionController
         $form = $grid->getForm();
         $form->setData($requestParams);
 
-        if ($this->getRequest()->isPost() && $form->isValid()) {
+        
+        if ($this->getRequest()->isPost() && ($isValid = $form->isValid())) {
             $data = $this->preSave($form);
             $grid->save($data, $itemId);
+            
+            if($grid->getDataSource() instanceof DoctrineDbTableGateway) {
+                $grid->getDataSource()->getEm()->flush();
+            }
+            
             $this->postSave($grid, $itemId);
 
             $this->backTo()->goBack('Record updated.');
         }
 
         $item = $grid->getRow($itemId);
+        if(is_object($item)) {
+            $item = $item->getArrayCopy();
+        }
+        
         $form->setData($item);
 
         //$currentPanel = $this->getRequest()->getParam('panel');
@@ -123,7 +143,8 @@ class DataGridController extends AbstractActionController
 
         $viewModel = new ViewModel(array(
             'grid' => $grid,
-            'item' => $item
+            'item' => $item,
+            'backUrl' => $backUrl
         ));
         $viewModel->setTemplate('at-datagrid/edit');
 
@@ -141,15 +162,24 @@ class DataGridController extends AbstractActionController
             throw new \Exception('You are not allowed to do this.');
         }
 
-        $itemId = $this->params('id');
+        $itemId = $this->params()->fromPost('items', $this->params('id'));
 
         if (!$itemId) {
             throw new \Exception('No record found.');
         }
 
-        $grid->delete($itemId);
+        foreach((array)$itemId as $id) {
+            $grid->delete($id);
+        }
+        
+        if($grid->getDataSource() instanceof DoctrineDbTableGateway) {
+            $grid->getDataSource()->getEm()->flush();
+        }
+        
 
-        $this->backTo()->goBack('Record deleted.');    }
+        return $this->backTo()->goBack('Record deleted.');
+         
+    }
 
     /**
      * Hook before save row
@@ -177,7 +207,7 @@ class DataGridController extends AbstractActionController
     }
 
     /**
-     * @return \AtAdmin\DataGrid\DataGrid
+     * @return \ZfJoacubCrud\DataGrid\DataGrid
      */
     public function getGrid()
     {

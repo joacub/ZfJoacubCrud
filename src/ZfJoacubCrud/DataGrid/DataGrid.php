@@ -4,6 +4,12 @@ namespace ZfJoacubCrud\DataGrid;
 
 use ZfJoacubCrud\DataGrid\DataSource;
 use ZfJoacubCrud\DataGrid\Column;
+use Zend\Di\ServiceLocator;
+use Zend\ServiceManager\ServiceManager;
+use Zend\Mvc\Controller\PluginManager;
+use Zend\Form\Form;
+use ZfJoacubCrud\DataGrid\DataSource\AbstractDataSource;
+use Nette\Diagnostics\Debugger;
 
 /**
  *
@@ -70,7 +76,7 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
     /**
      * Data source
      *
-     * @var
+     * @var AbstractDataSource
      */
     protected $dataSource;
 
@@ -100,6 +106,8 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
      * @var \Zend\Form\Form
      */
     protected $form;
+    
+    protected $sl;
 
     /**
      * Actions for row
@@ -168,6 +176,20 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
         }
         
         return $this;
+    }
+    
+    public function setServiceManager($serviceLocator)
+    {
+        $this->sl = $serviceLocator;
+        return $this;
+    }
+    
+    /**
+     * @return ServiceManager
+     */
+    public function getserviceManager()
+    {
+        return $this->sl;
     }
     
     // METADATA
@@ -280,7 +302,7 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
      * Return column object specified by it name
      *
      * @param $name
-     * @return Column
+     * @return \ZfJoacubCrud\DataGrid\Column\Column
      * @throws \Exception
      */
     public function getColumn($name)
@@ -499,6 +521,12 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
             $this->itemsPerPage,
             $this->pageRange
         );
+    	
+    	if(is_object($this->data)) {
+    	    foreach($this->data as &$entity) {
+    	        $entity = $entity->getArrayCopy();
+    	    }
+    	}
 
         return $this->data;
     }
@@ -742,30 +770,45 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
     public final function getForm($options = array())
     {
         if ($this->form == null) {
+            
+            $form = $this->getserviceManager()->get('formGenerator')
+            ->setClass($this->getDataSource()->getEntity())
+            ->getForm();
+            $form instanceof Form;
             //$form = new ATF_DataGrid_Form();
-            $form = new \Zend\Form\Form('create-form', $options);
-
+            //$form = new \Zend\Form\Form('create-form', $options);
+            
             // Collect elements
             foreach ($this->getColumns() as $column) {
                 if (!$column->isVisibleInForm()) {
+                    $form->remove($column->getName());
+                    $form->getInputFilter()->remove($column->getName());
                     continue;
                 }
-
+                continue;
                 /* @var \Zend\Form\Element */
                 $element = $column->getFormElement();
-                $element->setLabel($column->getLabel());
-                $form->add($element);
+                
+                if(!$form->get($column->getName())->getLabel()) {
+                    $form->get($column->getName())->setLabel($column->getLabel());
+                }
+                
             }
 
-            // Hash element to prevent CSRF attack
-            $csrf = new \Zend\Form\Element\Csrf('hash');
-            $form->add($csrf);
+            if(!$this->getserviceManager()->get('response')->getHeaders()->has('ZfJoacubFormJqueryValidate')) {
+                //Hash element to prevent CSRF attack
+                $csrf = new \Zend\Form\Element\Csrf('hash');
+                $form->add($csrf);
+            }
 
             // Use this method to add additional element to form
             // @todo Use Event instead
             $form = $this->addExtraFormElements($form);
 
             $this->form = $form;
+            $manager = $this->getserviceManager()->get('ZfJoacubFormJqueryValidate\FormManager');
+            $manager instanceof \Zend\Mvc\Controller\PluginManager;
+            $manager->setService('create-form', $this->form);
         }
 
         return $this->form;
@@ -804,14 +847,11 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
     {
         $columns = $this->getColumns();
 
-        /** @var \Zend\Db\Sql\Select $select  */
-        $select = $this->getDataSource()->getSelect();
-
         foreach ($columns as $column) {
             $filters = $column->getFilters();
 
             foreach ($filters as $filter) {
-                $filter->apply($select, $column, $values[$filter->getName()]);
+                $filter->apply($this->getDataSource(), $column, $values[$filter->getName()]);
             }
         }
 

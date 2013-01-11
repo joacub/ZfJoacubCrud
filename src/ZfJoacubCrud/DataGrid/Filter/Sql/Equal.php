@@ -3,6 +3,8 @@
 namespace ZfJoacubCrud\DataGrid\Filter\Sql;
 
 use ZfJoacubCrud\DataGrid\Filter;
+use ZfJoacubCrud\DataGrid\DataSource\DoctrineDbTableGateway;
+use ZfJoacubCrud\DataGrid\Filter\Parameter\ParameterId;
 
 class Equal extends Filter\AbstractFilter
 {
@@ -12,15 +14,23 @@ class Equal extends Filter\AbstractFilter
      * @param mixed $value
      * @return mixed|void
      */
-    public function apply($select, $column, $value)
+    public function apply($dataSource, $column, $value)
     {
         $value = $this->applyValueType($value);
 
         if (isset($value) && !empty($value)) {
-        	//$columnName = $this->_findTableColumnName($select, $column->getName());
-            $select->where(array($column->getName() => $value));
+            if($dataSource instanceof DoctrineDbTableGateway) {
+                $qb = $dataSource->getSelect();
+                $parameter = ParameterId::getParameter(__CLASS__, $column->getName());
+                $qb->where($qb->expr()->eq($dataSource->getEntity() . '.' . $column->getName(), ':' . $parameter))
+                ->setParameter($parameter, $value);
+            } else {
+                //$columnName = $this->_findTableColumnName($select, $column->getName());
+                $dataSource->getSelect()->where(array($column->getName() => $value));
+            }
+        	
         }
 
-        return $select;
+        return $dataSource;
     }
 }

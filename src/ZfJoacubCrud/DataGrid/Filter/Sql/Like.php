@@ -3,6 +3,8 @@
 namespace ZfJoacubCrud\DataGrid\Filter\Sql;
 
 use ZfJoacubCrud\DataGrid\Filter;
+use ZfJoacubCrud\DataGrid\DataSource\DoctrineDbTableGateway;
+use ZfJoacubCrud\DataGrid\Filter\Parameter\ParameterId;
 
 class Like extends Filter\AbstractFilter
 {
@@ -12,7 +14,7 @@ class Like extends Filter\AbstractFilter
      * @param  mixed $value
      * @return mixed
      */
-    public function apply($select, $column, $value)
+    public function apply($dataSource, $column, $value)
     {
         $value = $this->applyValueType($value);
 
@@ -21,14 +23,27 @@ class Like extends Filter\AbstractFilter
             //$columnName = $this->findTableColumnName($select, $column->getName());
             $columnName = $column->getName();
             
-            // @todo Add param for like template
-            $spec = function (\Zend\Db\Sql\Where $where) use ($columnName,$value) {
-                $where->like($columnName, '%' . $value . '%');
-            };
-
-            $select->where($spec);
+            if($dataSource instanceof DoctrineDbTableGateway) {
+                $parameter = ParameterId::getParameter(__CLASS__, $columnName);
+                $qb = $dataSource->getSelect();
+                $qb->where(
+                    $qb->expr()
+                        ->orx(
+                        $qb->expr()
+                            ->like($dataSource->getEntity() . '.' . $columnName, ':' . $parameter)))->setParameter($parameter, '%' . $value . '%');
+            } else {
+                // @todo Add param for like template
+                $spec = function (\Zend\Db\Sql\Where $where) use($columnName, 
+                $value)
+                {
+                    $where->like($columnName, '%' . $value . '%');
+                };
+                
+                $dataSource->getSelect()->where($spec);
+            }
+            
         }
 
-        return $select;
+        return $dataSource;
     }
 }

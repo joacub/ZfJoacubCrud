@@ -5,7 +5,7 @@ $form->prepare();
 $form->setAttribute('action', $this->url(null, array('action' => 'list')));
 $form->setAttribute('method', 'get');
 $form->setAttribute('id', 'datagrid-filters-form');
-
+$filtersClean = array();
 echo $this->form()->openTag($form);
 ?>
 
@@ -16,7 +16,8 @@ echo $this->form()->openTag($form);
             <td>
                 <?php if ($column->hasFilters()): ?>
                     <?php foreach ($column->getFilters() as $filter) : ?>
-                        <?= $this->formElement($form->get($filter->getName())); ?>
+                        <?php $filtersClean[$filter->getName()] = null; ?> 
+                        <?php echo $this->formElement($form->get($filter->getName())); ?>
                     <?php endforeach; ?>    
                 <?php endif; ?>
             </td>
@@ -24,9 +25,9 @@ echo $this->form()->openTag($form);
         <?php endforeach; ?>
         <td>
             <div class="btn-group right">
-                <button class="btn btn-info btn-small" type="submit" title="<?= $this->translate('Apply filters'); ?>"><i class="icon-search icon-white"></i></button>
-                <a class="btn btn-danger btn-small" href="<?= $this->url(null, array(), true)?>" title="<?= $this->translate('Reset filters'); ?>"><i class="icon-remove icon-white"></i></a>
+                <button class="btn btn-info btn-small" type="submit" title="<?php echo $this->translate('Apply filters'); ?>"><i class="icon-search icon-white"></i></button>
+                <a class="btn btn-danger btn-small" href="<?php echo $this->url(null, $filtersClean, true)?>" title="<?php echo $this->translate('Reset filters'); ?>"><i class="icon-remove icon-white"></i></a>
             </div>
         </td>
     </tr>
-<?= $this->form()->closeTag(); ?>
+<?php echo $this->form()->closeTag(); ?>

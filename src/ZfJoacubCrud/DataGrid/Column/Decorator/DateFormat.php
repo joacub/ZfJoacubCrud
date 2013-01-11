@@ -35,6 +35,10 @@ class DateFormat extends AbstractDecorator
      */
     public function render($value, $row)
     {
+        if($value instanceof \DateTime) {
+            return $value->format($this->format);
+        }
+            
         if ($value) {
             return date($this->format, strtotime($value));
         }

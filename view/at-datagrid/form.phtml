@@ -4,9 +4,10 @@ $form = $this->grid->getForm();
 $form->prepare();
 $form->setAttribute('action', $this->url(null, array(), array(), true));
 $form->setAttribute('method', 'post');
-$form->setAttribute('id', 'datagrid-form');
+//$form->setAttribute('id', 'datagrid-form');
 $form->setAttribute('class', 'form-horizontal grid-form');
 
+$this->zfJoacubFormJqueryValidatePrepare('create-form');
 echo $this->form()->openTag($form);
 ?>
 
@@ -16,7 +17,12 @@ echo $this->form()->openTag($form);
             <?= $this->formHidden($element) ?>
         <?php else: ?>
             <?php $element->setLabelAttributes(array('class' => 'control-label')); ?>
-            <?= $this->formLabel($element) ?>
+            <?php 
+            if ($element->getLabel())
+        	{
+        		echo $this->formLabel($element);
+        	}
+        	?>
             <div class="controls">
                 <?= $this->formElement($element) ?>
                 <p class="help-block">

@@ -1,7 +1,7 @@
 <div class="atf-grid-group-actions">
-    <div class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" id="drop-bulk">
-            <?= $this->translate("with selected") ?>
+    <div class="btn-group">
+        <a href="#" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" role="button" id="drop-bulk">
+            <?php echo $this->translate("with selected") ?>
             <span class="caret"></span>
         </a>
         <ul class="dropdown-menu" role="menu" area-labeledby="drop-bulk">
@@ -12,7 +12,7 @@
                            <?php if (isset($action['confirm-message'])): ?>
                                onclick="return DataGrid.confirmAction(this, '<?= $action['confirm-message'] ?>')"
                            <?php endif;?>>
-                           <?= $this->translate($action['label']) ?></a>
+                           <?php echo $this->translate($action['label']) ?></a>
                     </li>
                 <?php endif; ?>
             <?php endforeach; ?>

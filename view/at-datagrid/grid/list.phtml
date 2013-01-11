@@ -1,3 +1,16 @@
+<?php 
+$messages = $this->flashMessenger()->render(SuperMessenger\Controller\Plugin\SuperMessenger::SUCCESS_MESSAGE);
+if($messages)
+    echo $this->sxbAlert()->success($messages);
+
+$messages = $this->flashMessenger()->render(SuperMessenger\Controller\Plugin\SuperMessenger::ERROR_MESSAGE);
+if($messages)
+    echo $this->sxbAlert()->error($messages);
+
+$messages = $this->flashMessenger()->render(SuperMessenger\Controller\Plugin\SuperMessenger::INFO_MESSAGE);
+if($messages)
+    echo $this->sxbAlert()->info($messages);
+?>
 <div class="row">
     <div class="span12">
         <div class="clearfix">
