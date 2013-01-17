@@ -26,7 +26,7 @@ class Like extends Filter\AbstractFilter
             if($dataSource instanceof DoctrineDbTableGateway) {
                 $parameter = ParameterId::getParameter(__CLASS__, $columnName);
                 $qb = $dataSource->getSelect();
-                $qb->where(
+                $qb->andWhere(
                     $qb->expr()
                         ->orx(
                         $qb->expr()

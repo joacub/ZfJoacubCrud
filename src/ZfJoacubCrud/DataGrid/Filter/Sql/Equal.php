@@ -22,7 +22,7 @@ class Equal extends Filter\AbstractFilter
             if($dataSource instanceof DoctrineDbTableGateway) {
                 $qb = $dataSource->getSelect();
                 $parameter = ParameterId::getParameter(__CLASS__, $column->getName());
-                $qb->where($qb->expr()->eq($dataSource->getEntity() . '.' . $column->getName(), ':' . $parameter))
+                $qb->andWhere($qb->expr()->eq($dataSource->getEntity() . '.' . $column->getName(), ':' . $parameter))
                 ->setParameter($parameter, $value);
             } else {
                 //$columnName = $this->_findTableColumnName($select, $column->getName());

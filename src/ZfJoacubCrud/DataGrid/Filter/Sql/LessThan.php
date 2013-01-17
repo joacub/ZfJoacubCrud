@@ -22,7 +22,7 @@ class LessThan extends Filter\AbstractFilter
             if($dataSource instanceof DoctrineDbTableGateway) {
                 $qb = $dataSource->getQueryBuilder();
                 $parameter = ParameterId::getParameter(__CLASS__, $column->getName());
-                $qb->where($qb->expr()->lt($dataSource->getEntity() . '.' . $column->getName(), ':' . $parameter));
+                $qb->andWhere($qb->expr()->lt($dataSource->getEntity() . '.' . $column->getName(), ':' . $parameter));
                 $qb->setParameter($parameter, $value);
             } else {
                 $dataSource->where(

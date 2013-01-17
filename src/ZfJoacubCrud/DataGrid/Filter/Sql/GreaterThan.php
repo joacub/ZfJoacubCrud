@@ -22,7 +22,7 @@ class GreaterThan extends Filter\AbstractFilter
             if($dataSource instanceof DoctrineDbTableGateway) {
                 $qb = $dataSource->getQueryBuilder();
                 $parameter = ParameterId::getParameter(__CLASS__, $column->getName());
-                $qb->where($qb->expr()->gt($dataSource->getEntity() . '.' . $column->getName(), ':' . $parameter));
+                $qb->andWhere($qb->expr()->gt($dataSource->getEntity() . '.' . $column->getName(), ':' . $parameter));
                 $qb->setParameter($parameter, $value);
             } else {
                 $dataSource->getSelect()->where(
