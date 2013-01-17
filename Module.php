@@ -8,7 +8,7 @@ class Module
     {
         return array(
             'invokables' => array(
-                'backTo' => 'AtBase\Mvc\Controller\Plugin\BackTo'
+                'backTo' => 'JoacubBase\Mvc\Controller\Plugin\BackTo'
             ),
         );
     }

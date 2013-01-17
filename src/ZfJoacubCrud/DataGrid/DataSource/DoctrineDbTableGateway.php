@@ -5,17 +5,15 @@ namespace ZfJoacubCrud\DataGrid\DataSource;
 use Zend\Db\Adapter\Adapter;
 use Zend\Db\Sql\Select;
 use Zend\Db\TableGateway\TableGateway;
-use Zend\Db\TableGateway\Feature;
-use Zend\Db\ResultSet\ResultSet;
 use ZfJoacubCrud\DataGrid\Column;
 use Doctrine\ORM\EntityManager;
-use Nette\Diagnostics\Debugger;
-use ZfJoacubCrud\DataGrid\PaginatorAdapter;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query\Expr\OrderBy;
 use CustomediaGestion\Entity\FArticle;
 use DoctrineORMModule\Paginator\Adapter\DoctrinePaginator;
 use Doctrine\ORM\Tools\Pagination\Paginator;
+use Gedmo\Translatable\TranslatableListener;
+use Nette\Diagnostics\Debugger;
 
 class DoctrineDbTableGateway extends AbstractDataSource
 {
@@ -60,6 +58,18 @@ class DoctrineDbTableGateway extends AbstractDataSource
      * @var QueryBuilder
      */
     protected $qb;
+    
+    /**
+     * 
+     * @var bool
+     */
+    protected $isTranslationTable;
+    
+    /**
+     * 
+     * @var array
+     */
+    protected $translatableColumns;
 
     /**
      * @param $options
@@ -67,6 +77,13 @@ class DoctrineDbTableGateway extends AbstractDataSource
 	public function __construct($options)
 	{
 		parent::__construct($options);
+		
+		// detectamos si la tabla contiene o no traducciones y lo anotamos
+		$translatableListener = new TranslatableListener();
+		$config = $translatableListener->getConfiguration($this->getEm(), $this->getEntity());
+		$this->setIsTranslationTable((bool) count($config['fields']) > 0);
+		
+		$this->setColumnsTranslatable($config['fields']);
 
 		$this->setQueryBuilder();
         $this->columns = $this->loadColumns();
@@ -154,8 +171,10 @@ class DoctrineDbTableGateway extends AbstractDataSource
     public function getPaginator()
     {
         if (!$this->paginator) {
+            $dp = new Paginator($this->getQueryBuilder());
+            $dp->setUseOutputWalkers(false);
             $this->paginator = new \Zend\Paginator\Paginator(
-                new DoctrinePaginator(new Paginator($this->getQueryBuilder()))
+                new DoctrinePaginator($dp)
             );
         }
 
@@ -207,7 +226,9 @@ class DoctrineDbTableGateway extends AbstractDataSource
     public function loadColumns()
     {
         $mapping = $this->getEm()->getClassMetadata($this->getEntity());
+        
         foreach ($mapping->fieldMappings as $map) {
+            
             $columnName = $map['fieldName'];
             $columnDataType = $map['type'];
             
@@ -345,11 +366,11 @@ class DoctrineDbTableGateway extends AbstractDataSource
     	$em = $this->getEm();
     	$entity = new FArticle();
     	
-    	$entity->populateData($this->cleanDataForSql($data));
+    	$entity->populateData($data);
     	
         $em->persist($entity);
         
-        return $entity->getId();
+        return $entity;
     }
 
     /**
@@ -361,7 +382,7 @@ class DoctrineDbTableGateway extends AbstractDataSource
     {
         $em = $this->getEm();
         $entity = $this->find($key);
-        $entity->populateData($this->cleanDataForSql($data));
+        $entity->populateData($data);
         $em->persist($entity);
         return $entity;
     }
@@ -377,4 +398,37 @@ class DoctrineDbTableGateway extends AbstractDataSource
         $em->remove($entity);
         return $this;
     }    
+    
+    /**
+     * 
+     * @param bool $isTranslationTable
+     * @return \ZfJoacubCrud\DataGrid\DataSource\DoctrineDbTableGateway
+     */
+    protected function setIsTranslationTable($isTranslationTable)
+    {
+        $this->isTranslationTable = $isTranslationTable;
+        return $this;
+    }
+    
+    /**
+     * nos dice si la tabla(s) contiene alguna traduccion
+     * @return boolean
+     */
+    public function isTranslationTable()
+    {
+        return $this->isTranslationTable;
+    }
+    
+    public function setColumnsTranslatable($columns)
+    {
+        $this->translatableColumns = $columns;
+        return $this;
+    }
+    
+    public function getColumnsTranslatable()
+    {
+        return $this->translatableColumns;
+    }
+    
+    
 }

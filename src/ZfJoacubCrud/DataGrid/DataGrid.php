@@ -482,7 +482,7 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
     /**
      * Get data source object
      *
-     * @return mixed
+     * @return AbstractDataSource
      */
     public function getDataSource()
     {
@@ -524,6 +524,7 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
     	
     	if(is_object($this->data)) {
     	    foreach($this->data as &$entity) {
+    	        if(!is_object($entity))  break; 
     	        $entity = $entity->getArrayCopy();
     	    }
     	}

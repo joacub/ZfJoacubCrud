@@ -1,6 +1,20 @@
 <?php $this->headScript()->appendFile($this->basePath() . '/js/at-datagrid/datagrid.js') ?>
 <?php $this->headLink()->appendStylesheet($this->basePath() . '/css/at-datagrid/datagrid.css') ?>
 
+    <ul class="nav nav-pills">
+    <li class="dropdown">
+    <a class="dropdown-toggle"
+    data-toggle="dropdown"
+    href="#">
+    Dropdown
+    <b class="caret"></b>
+    </a>
+    <ul class="dropdown-menu">
+    <!-- links -->
+    </ul>
+    </li>
+    </ul>
+
 <div class="row item-info">
     <div class="span2 back">
         <a href="" title="<?= $this->translate('Back to list'); ?>">
@@ -12,5 +26,5 @@
 </div>
 
 <div class="row">
-    <?= $this->render('at-datagrid/form') ?>
+    <?php echo $this->render('at-datagrid/form') ?>
 </div>

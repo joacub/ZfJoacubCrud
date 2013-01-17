@@ -1,40 +1,118 @@
 <?php
 
+use Zend\Json\Json;
+use Zend\Form\Form;
+
+
+$columnsTranslatable = $this->grid->getDataSource()->getColumnsTranslatable();
+$columnsTranslatableKeys = array_fill_keys($columnsTranslatable, true);
+$grid = $this->grid;
 $form = $this->grid->getForm();
-$form->prepare();
-$form->setAttribute('action', $this->url(null, array(), array(), true));
-$form->setAttribute('method', 'post');
-//$form->setAttribute('id', 'datagrid-form');
-$form->setAttribute('class', 'form-horizontal grid-form');
+$form instanceof Form;
 
-$this->zfJoacubFormJqueryValidatePrepare('create-form');
-echo $this->form()->openTag($form);
-?>
-
-<?php foreach ($form->getElements() as $element): ?>
-    <div class="control-group">
-        <?php if ($element->getAttribute('type') == 'hidden'): ?>
-            <?= $this->formHidden($element) ?>
-        <?php else: ?>
-            <?php $element->setLabelAttributes(array('class' => 'control-label')); ?>
-            <?php 
-            if ($element->getLabel())
-        	{
-        		echo $this->formLabel($element);
-        	}
-        	?>
-            <div class="controls">
-                <?= $this->formElement($element) ?>
-                <p class="help-block">
-                    <?= $this->formElementErrors($element); ?>
-                </p>
-            </div>
-        <?php endif; ?>
-    </div>
+$printForm = function() use($form, $columnsTranslatableKeys) {
+    
+    $form->prepare();
+    $form->setAttribute('action', $this->url(null, array(), array(), true));
+    $form->setAttribute('method', 'post');
+    $localeElement = $form->get('locale');
+    
+    $flag = $this->delCountriesFlagsFlag(Locale::getRegion($localeElement->getValue()), 'tiny');
+    
+    $form->setAttribute('id', 'datagrid-form-' . $localeElement->getValue());
+    $form->setAttribute('class', 'form-horizontal grid-form');
+    
+    
+    $this->zfJoacubFormJqueryValidatePrepare('create-form');
+    echo $this->form()->openTag($form);
+    ?>
+    
+    <?php foreach ($form->getElements() as $element): ?>
+<div class="control-group">
+            <?php if ($element->getAttribute('type') == 'hidden'): ?>
+                <?php echo $this->formHidden($element) ?>
+            <?php else: ?>
+                <?php $element->setLabelAttributes(array('class' => 'control-label')); ?>
+                <?php 
+                if ($element->getLabel())
+            	{
+            		echo $this->formLabel($element);
+            	}
+            	?>
+                <div class="controls">
+                    <?php echo $this->formElement($element)  ?> <?php echo isset($columnsTranslatableKeys[$element->getName()]) ? $flag : '' ?>
+                    <p class="help-block">
+                        <?php echo $this->formElementErrors($element); ?>
+                    </p>
+	</div>
+            <?php endif; ?>
+        </div>
 <?php endforeach; ?>
 
 <div class="form-actions">
-    <button type="submit" class="btn btn-info">Save</button>
+	<button type="submit" class="btn btn-info">Save</button>
 </div>
 
-<?= $this->form()->closeTag(); ?>
+<?php echo $this->form()->closeTag();
+};
+
+
+if($grid->getDataSource()->isTranslationTable()) :
+$localeElement = $form->get('locale');
+$localeElement->setAttribute('type', 'hidden');
+$locales = $this->joacubBaseLocale()->getLocaleSupported();
+?>
+<div class="tabbable">
+	<!-- Only required for left/right tabs -->
+	<ul id="tabslangs" class="nav nav-tabs">
+	<?php foreach ($locales as $locale):  ?>
+		<li <?php echo $localeElement->getValue() !== $locale ? null : 'class="active"'?>><a href="<?php echo $this->joacubBaseQueryParams(array('locale' => $locale), true); ?>#tab-joacub-crud-locale-<?php echo $locale ?>" data-toggle="tab"><?php echo Locale::getDisplayLanguage($locale) ?></a></li>
+		<?php endforeach; ?>
+	</ul>
+	<div class="tab-content">
+	<?php foreach($locales as $locale): ?>
+	
+		<div class="tab-pane <?php echo $localeElement->getValue() !== $locale ? null : 'active'?>" id="tab-joacub-crud-locale-<?php echo $locale ?>">
+			<?php $localeElement->getValue() !== $locale ?: $printForm(); ?>
+		</div>
+		<?php endforeach; ?>
+	</div>
+</div>
+
+<?php 
+endif;
+
+?>
+
+<script type="text/javascript">
+//<!--
+$('#tabslangs a').click(function (e) {
+    e.preventDefault();
+    var parts = $(this).attr('href').split('#');
+    var tab = parts[1];
+    if($('#'+tab).find('form').length == 0) {
+    	var iframe = $('<iframe>').hide().attr('src', $(this).attr('href')).load(function() {
+    	    var content = $(this).contents().find('#tabslangs + .tab-content #'+tab).html();
+    	    
+    	    $('#'+tab).html(content);
+    	    $(this).contents().find('body').find("script:contains(\"validate\")").each(function(i) {
+                eval($(this).text());
+            });
+            $(this).remove();
+    	});
+    	$('body').append(iframe);
+    }
+    	
+    
+    $(this).tab('show');
+    })
+    
+    var columnsTranslatable = <?php echo Json::encode($columnsTranslatable); ?>;
+    $('input, textarea').on('change', function() {
+    	if(columnsTranslatable[$(this).attr('name')]) {
+    	    $('[name="'+$(this).attr('name')+'"]').val($(this).val());
+    	}
+    });
+//-->
+</script>
+

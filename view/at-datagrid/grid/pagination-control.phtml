@@ -4,29 +4,29 @@
 
         <!-- First page link -->
         <li<?php echo (isset($this->previous)) ? '' : ' class="disabled"'; ?>>
-            <a href="<?php echo $this->atBaseQueryParams(array('page' => $this->first)); ?>">&lt;&lt; First</a>
+            <a href="<?php echo $this->joacubBaseQueryParams(array('page' => $this->first)); ?>">&lt;&lt; First</a>
         </li>
 
         <!-- Previous page link -->
         <li<?php echo (isset($this->previous)) ? '' : ' class="disabled"'; ?>>
-            <a href="<?php echo $this->atBaseQueryParams(array('page' => $this->previous-9)); ?>">&lt; Previous 10</a>
+            <a href="<?php echo $this->joacubBaseQueryParams(array('page' => $this->previous-9)); ?>">&lt; Previous 10</a>
         </li>
 
         <!-- Numbered page links -->
         <?php foreach ($this->pagesInRange as $page): ?>
         <li<?php echo ($page == $this->current) ? ' class="active"' : ''; ?>>
-            <a href="<?php echo $this->atBaseQueryParams(array('page' => $page)); ?>"><?php echo $page; ?></a>
+            <a href="<?php echo $this->joacubBaseQueryParams(array('page' => $page)); ?>"><?php echo $page; ?></a>
         </li>
         <?php endforeach; ?>
 
         <!-- Next page link -->
         <li<?php echo (isset($this->next)) ? '' : ' class="disabled"'; ?>>
-            <a href="<?php echo $this->atBaseQueryParams(array('page' => $this->previous+9)); ?>">Next 10 &gt;</a>
+            <a href="<?php echo $this->joacubBaseQueryParams(array('page' => $this->previous+9)); ?>">Next 10 &gt;</a>
         </li>
 
         <!-- Last page link -->
         <li<?php echo (isset($this->next)) ? '' : ' class="disabled"'; ?>>
-            <a href="<?php echo $this->atBaseQueryParams(array('page' => $this->last)); ?>">Last &gt;&gt;</a>
+            <a href="<?php echo $this->joacubBaseQueryParams(array('page' => $this->last)); ?>">Last &gt;&gt;</a>
         </li>
 
     </ul>
@@ -51,7 +51,7 @@ if ($this->pageCount > 1 || true == true): ?>
             <td>Pages:</td>
             <td class="prev">
 		        <?php if (isset($this->previous)): ?>
-		          <a href="<?= $this->atBaseQueryParams(array('page' => $this->previous)); ?>" title="<?= $this->translate('Previous page'); ?>">
+		          <a href="<?= $this->joacubBaseQueryParams(array('page' => $this->previous)); ?>" title="<?= $this->translate('Previous page'); ?>">
 		            <i class="icon-arrow-left"></i>
 		          </a>
 		        <?php endif; ?>
@@ -61,7 +61,7 @@ if ($this->pageCount > 1 || true == true): ?>
                 <ul>
 			        <?php foreach ($this->pagesInRange as $page): ?>
 			            <?php if ($page != $this->current): ?>
-			                <li><a href="<?= $this->atBaseQueryParams(array('page' => $page)) ?>"><?= $page ?></a></li>
+			                <li><a href="<?= $this->joacubBaseQueryParams(array('page' => $page)) ?>"><?= $page ?></a></li>
 			            <?php else: ?>
 			                <li class="active"><?= $page; ?></li>
 			            <?php endif; ?>
@@ -71,7 +71,7 @@ if ($this->pageCount > 1 || true == true): ?>
 
             <td class="next">
 		        <?php if (isset($this->next)): ?>
-                    <a href="<?= $this->atBaseQueryParams(array('page' => $this->next)); ?>" title="<?= $this->translate('Next page'); ?>">
+                    <a href="<?= $this->joacubBaseQueryParams(array('page' => $this->next)); ?>" title="<?= $this->translate('Next page'); ?>">
                         <i class="icon-arrow-right"></i>
                     </a>
 		        <?php endif; ?>

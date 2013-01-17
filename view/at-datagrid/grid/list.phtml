@@ -36,7 +36,7 @@ if($messages)
                             <? if ($column->isVisible()): ?>
                                 <th>
                                     <? if ($column->isSortable()): ?>
-                                        <a class="sortable" href="<?= $this->atBaseQueryParams(array('page' => 1, 'order' => $column->getName() . '~' . $column->getOrderDirection())) ?>">
+                                        <a class="sortable" href="<?= $this->joacubBaseQueryParams(array('page' => 1, 'order' => $column->getName() . '~' . $column->getOrderDirection())) ?>">
                                             <? if ($this->grid->getCurrentOrderColumnName() == $column->getName()): ?>
                                                 <span class="active">
                                                     <?= $column->getLabel() ?>

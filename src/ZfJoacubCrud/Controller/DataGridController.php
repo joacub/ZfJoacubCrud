@@ -132,6 +132,8 @@ class DataGridController extends AbstractActionController
         }
 
         $item = $grid->getRow($itemId);
+        $item->setTranslatableLocale($this->params()->fromQuery('locale', \Locale::getDefault()));
+        $this->getGrid()->getDataSource()->getEm()->refresh($item);
         if(is_object($item)) {
             $item = $item->getArrayCopy();
         }
