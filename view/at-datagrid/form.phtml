@@ -10,7 +10,7 @@ $grid = $this->grid;
 $form = $this->grid->getForm();
 $form instanceof Form;
 
-$printForm = function() use($form, $columnsTranslatableKeys) {
+$printForm = function() use($form, $columnsTranslatableKeys, $this) {
     
     $form->prepare();
     $form->setAttribute('action', $this->url(null, array(), array(), true));
