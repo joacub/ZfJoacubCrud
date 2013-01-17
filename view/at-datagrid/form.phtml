@@ -8,41 +8,42 @@ $columnsTranslatable = $this->grid->getDataSource()->getColumnsTranslatable();
 $columnsTranslatableKeys = array_fill_keys($columnsTranslatable, true);
 $grid = $this->grid;
 $form = $this->grid->getForm();
+$instanceView = $this;
 $form instanceof Form;
 
-$printForm = function() use($form, $columnsTranslatableKeys, $this) {
+$printForm = function() use($form, $columnsTranslatableKeys, $instanceView) {
     
     $form->prepare();
-    $form->setAttribute('action', $this->url(null, array(), array(), true));
+    $form->setAttribute('action', $instanceView->url(null, array(), array(), true));
     $form->setAttribute('method', 'post');
     $localeElement = $form->get('locale');
     
-    $flag = $this->delCountriesFlagsFlag(Locale::getRegion($localeElement->getValue()), 'tiny');
+    $flag = $instanceView->delCountriesFlagsFlag(Locale::getRegion($localeElement->getValue()), 'tiny');
     
     $form->setAttribute('id', 'datagrid-form-' . $localeElement->getValue());
     $form->setAttribute('class', 'form-horizontal grid-form');
     
     
-    $this->zfJoacubFormJqueryValidatePrepare('create-form');
-    echo $this->form()->openTag($form);
+    $instanceView->zfJoacubFormJqueryValidatePrepare('create-form');
+    echo $instanceView->form()->openTag($form);
     ?>
     
     <?php foreach ($form->getElements() as $element): ?>
 <div class="control-group">
             <?php if ($element->getAttribute('type') == 'hidden'): ?>
-                <?php echo $this->formHidden($element) ?>
+                <?php echo $instanceView->formHidden($element) ?>
             <?php else: ?>
                 <?php $element->setLabelAttributes(array('class' => 'control-label')); ?>
                 <?php 
                 if ($element->getLabel())
             	{
-            		echo $this->formLabel($element);
+            		echo $instanceView->formLabel($element);
             	}
             	?>
                 <div class="controls">
-                    <?php echo $this->formElement($element)  ?> <?php echo isset($columnsTranslatableKeys[$element->getName()]) ? $flag : '' ?>
+                    <?php echo $instanceView->formElement($element)  ?> <?php echo isset($columnsTranslatableKeys[$element->getName()]) ? $flag : '' ?>
                     <p class="help-block">
-                        <?php echo $this->formElementErrors($element); ?>
+                        <?php echo $instanceView->formElementErrors($element); ?>
                     </p>
 	</div>
             <?php endif; ?>
@@ -53,7 +54,7 @@ $printForm = function() use($form, $columnsTranslatableKeys, $this) {
 	<button type="submit" class="btn btn-info">Save</button>
 </div>
 
-<?php echo $this->form()->closeTag();
+<?php echo $instanceView->form()->closeTag();
 };
 
 
