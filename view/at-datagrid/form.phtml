@@ -101,7 +101,7 @@ $('#tabslangs a').on('shown', function (e) {
 
     	$tab.height(200);
         
-        $tab.block({ message: '<img src="<?php echo $this->basePath(); ?>/img/at-datagrid/ajax-loader.gif" alt="Cargando..." >', css: {background: 'transparent', border: 'none'} });
+        $tab.block({ message: '<img  src="<?php echo $this->basePath(); ?>/img/at-datagrid/ajax-loader.gif" alt="Cargando..." >', css: {height:'128px', width:'128px', background: 'transparent', border: 'none'} });
         
     	var iframe = $('<iframe>').hide().attr('src', $(this).attr('href')).load(function() {
     	    var content = $(this).contents().find('#tabslangs + .tab-content #'+$tab.attr('id')).html();
