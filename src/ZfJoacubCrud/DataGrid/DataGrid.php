@@ -24,6 +24,13 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
     protected $caption = '';
     
     /**
+     * Grid caption
+     *
+     * @var string
+     */
+    protected $captionBackTo = 'Volver al listado';
+    
+    /**
      * Data grid columns
      *
      * @var array
@@ -34,6 +41,12 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
      * @var string
      */
     protected $identifierColumnName = 'id';
+    
+    /**
+     * 
+     * @var string
+     */
+    protected $titleColumnName = 'title';
 
     /**
      * @var null
@@ -139,6 +152,8 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
         }
 
         $this->setOptions($options);
+        
+        $this->setIdentifierColumnName($this->getDataSource()->getIdentifierFieldName());
 
         /** @todo use event instead */
         $this->init();
@@ -211,6 +226,24 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
     {
         return $this->caption;
     }
+    
+    /**
+     * @param $caption
+     * @return DataGrid
+     */
+    public function setCaptionBackTo($caption)
+    {
+        $this->captionBackTo = $caption;
+        return $this;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getCaptionBackTo()
+    {
+        return $this->captionBackTo;
+    }
 
     // COLUMNS
 
@@ -232,6 +265,21 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
     public function getIdentifierColumnName()
     {
         return $this->identifierColumnName;
+    }
+    
+    public function setTitleColumnName($name)
+    {
+        $this->titleColumnName = $name;
+        return $this;
+    }
+    
+    /**
+     * 
+     * @return string
+     */
+    public function getTitleColumnName()
+    {
+        return $this->titleColumnName;
     }
 
     /**

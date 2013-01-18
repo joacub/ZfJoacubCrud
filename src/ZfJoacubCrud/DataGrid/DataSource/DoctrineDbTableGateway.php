@@ -227,6 +227,8 @@ class DoctrineDbTableGateway extends AbstractDataSource
     {
         $mapping = $this->getEm()->getClassMetadata($this->getEntity());
         
+        $this->setIdentifierFieldName(current($mapping->identifier));
+        
         foreach ($mapping->fieldMappings as $map) {
             
             $columnName = $map['fieldName'];

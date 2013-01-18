@@ -1,3 +1,8 @@
+<?php 
+
+$actionsIcons = array('delete' => '<i class="icon-trash"></i>');
+
+?>
 <form method="post" action="" id="datagrid-list-form">
     <?php foreach ($this->rows as $row) : ?>
         <tr>
@@ -12,7 +17,7 @@
             <?php endforeach; ?>
 
             <td>
-                <div class="btn-group right">
+                <div class="btn-group pull-right">
                     <?php foreach($this->grid->getButtonActions() as $action) : ?>
                         <a class="btn btn-small" href="<?php echo $this->url(null, array('action' => $action['action'], 'id' => $row[$this->grid->getIdentifierColumnName()])) ?>"
                             <?php if (isset($action['confirm-message'])): ?>
@@ -30,6 +35,7 @@
                                     <?php if (isset($action['confirm-message'])): ?>
                                         onclick="return DataGrid.confirmAction(this, '<?php echo $action['confirm-message'] ?>')"
                                     <?php endif;?>>
+                                    <?php echo isset($actionsIcons[$action['action']]) ? $actionsIcons[$action['action']] : '' ?>
                                     <?php echo $this->translate($action['label']) ?>
                                 </a>
                             </li>

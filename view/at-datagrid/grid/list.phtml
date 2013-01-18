@@ -1,28 +1,28 @@
 <?php 
 $messages = $this->flashMessenger()->render(SuperMessenger\Controller\Plugin\SuperMessenger::SUCCESS_MESSAGE);
 if($messages)
-    echo $this->sxbAlert()->success($messages);
+    echo str_replace(array('&times;'), array('<i class="icon-remove-circle"></i>'), (string) $this->sxbAlert()->success($messages));
 
 $messages = $this->flashMessenger()->render(SuperMessenger\Controller\Plugin\SuperMessenger::ERROR_MESSAGE);
 if($messages)
-    echo $this->sxbAlert()->error($messages);
+    echo str_replace(array('&times;'), array('<i class="icon-remove-circle"></i>'), (string) $this->sxbAlert()->error($messages));
 
 $messages = $this->flashMessenger()->render(SuperMessenger\Controller\Plugin\SuperMessenger::INFO_MESSAGE);
 if($messages)
-    echo $this->sxbAlert()->info($messages);
+    echo str_replace(array('&times;'), array('<i class="icon-remove-circle"></i>'), (string) $this->sxbAlert()->info($messages));
 ?>
 <div class="row">
     <div class="span12">
         <div class="clearfix">
-            <h2 class="left"><?= $this->translate($this->grid->getCaption()) ?></h2>
+            <h2 class="left"><?php echo $this->translate($this->grid->getCaption()) ?></h2>
             <div class="right" style="margin-top: 15px;">
                 <? if ($this->grid->isAllowCreate()): ?>
-                    <a class="btn btn-warning" href="<?= $this->url(null, array('action' => 'create')) ?>"><?= $this->translate('Create new') ?></a>
+                    <a class="btn btn-warning" href="<?= $this->url(null, array('action' => 'create')) ?>"><?php echo $this->translate('Create new') ?> <i class="icon-plus-sign"></i></a>
                 <? endif; ?>
             </div>
         </div>
 
-        <?= $this->render('at-datagrid/grid/paginator'); ?>
+        <?php echo $this->render('at-datagrid/grid/paginator'); ?>
         <hr/>
 
         <div class="atf-grid">

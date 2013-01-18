@@ -23,3 +23,19 @@ a.sortable:hover {text-decoration: none;}
 .item-info .back {font-size: 11px;}
 .item-info .back a {text-decoration: none;}
 .item-info .info {font-size: 14px;}
+
+/* general */
+div.left {
+	float:left;
+}
+
+
+.container-buttons-pagination .btn-toolbar {
+	margin-right:20px;
+	float:left;
+}
+
+.container-buttons-pagination .pagination {
+	float:left;
+	margin-top:11px;
+}

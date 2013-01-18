@@ -8,6 +8,7 @@ use ZfJoacubCrud\DataGrid;
 use Zend\Debug\Debug;
 use ZfJoacubCrud\DataGrid\DataSource\DoctrineDbTableGateway;
 use Nette\Diagnostics\Debugger;
+use Zend\Navigation\Navigation;
 
 class DataGridController extends AbstractActionController
 {
@@ -98,10 +99,11 @@ class DataGridController extends AbstractActionController
      */
     public function editAction()
     {
+        
         $backUrl = $this->backTo()->getBackUrl(false);
 
         $grid = $this->getGrid();
-
+        
         if (!$grid->isAllowEdit()) {
             throw new \Exception('You are not allowed to do this.');
         }
@@ -139,6 +141,35 @@ class DataGridController extends AbstractActionController
         }
         
         $form->setData($item);
+        
+        if(!$grid->getCaption())
+        $grid->setCaption($item[$grid->getTitleColumnName()]);
+        
+        $navigation = $this->getEvent()->getApplication()->getServiceManager()->get('viewrenderer')->getEngine()->plugin('navigation', array('navigation'));
+        
+        $container = $navigation->setContainer('admin_navigation')->getContainer();
+        $container instanceof \Zend\Navigation\Navigation;
+        $container = $container->findOneBy('route',
+            'zfcadmin/CustomediaGestion/articles')->findOneBy('params', array('action' => 'list'));
+        $container instanceof \Zend\Navigation\Page\Mvc;
+        $pages = new \Zend\Navigation\Page\Mvc(
+            array(
+                'label' => $grid->getCaption(),
+                'route' => 'zfcadmin/CustomediaGestion/articles',
+                'params' => array(
+                    'action' => 'edit',
+                    'id' => $this->params('id')
+                ),
+                'visible' => false
+            ));
+        
+        $serviceLocator = $this->getServiceLocator()->get('Application');
+        $routeMatch  = $serviceLocator->getMvcEvent()->getRouteMatch();
+        $router      = $serviceLocator->getMvcEvent()->getRouter();
+        $pages->setRouteMatch($routeMatch);
+        $pages->setDefaultRouter($router);
+        
+        $container->addPage($pages);
 
         //$currentPanel = $this->getRequest()->getParam('panel');
         //$this->view->panel = $currentPanel;
