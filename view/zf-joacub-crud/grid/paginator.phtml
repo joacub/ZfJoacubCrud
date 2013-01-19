@@ -30,8 +30,7 @@
     
 </div>
 <?php 
-$this->paginator->setPageRange(7);
-echo $this->paginationControl($this->paginator, null, 'at-datagrid/grid/pagination-control'); ?>
+echo $this->paginationControl($this->paginator, null, $this->viewGridPaginationControl); ?>
 </div>
 
 <br style="clear:both;">

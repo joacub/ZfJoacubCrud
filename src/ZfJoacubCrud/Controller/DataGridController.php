@@ -9,6 +9,9 @@ use Zend\Debug\Debug;
 use ZfJoacubCrud\DataGrid\DataSource\DoctrineDbTableGateway;
 use Nette\Diagnostics\Debugger;
 use Zend\Navigation\Navigation;
+use Zend\Mvc\MvcEvent;
+use Zend\Mvc\View\Http\InjectTemplateListener;
+use Zend\Loader\AutoloaderFactory;
 
 class DataGridController extends AbstractActionController
 {
@@ -16,7 +19,7 @@ class DataGridController extends AbstractActionController
      * @var \ZfJoacubCrud\DataGrid\DataGrid
      */
     protected $grid;
-
+    
     /**
      * @return array|\Zend\View\Model\ViewModel
      */
@@ -45,9 +48,23 @@ class DataGridController extends AbstractActionController
                 $grid->applyFilters($filtersForm->getData());
             }
 
-            $viewModel = new ViewModel(array('grid' => $grid));
-	        $viewModel->setTemplate('at-datagrid/grid');
-
+            $varsModel = array('grid' => $grid);
+            
+            $viewModel = new ViewModel($varsModel);
+            
+            $this->getEvent()->setResult($viewModel);
+            $injectTemplateListener  = new InjectTemplateListener();
+            $injectTemplateListener->injectTemplate($this->getEvent());
+            $model = $this->getEvent()->getResult();
+            $originalTemplate = $model->getTemplate();
+            $originalTemplateBase = dirname($originalTemplate);
+            
+            $viewResolver = $this->getServiceLocator()->get('ViewResolver');
+            
+            //miramos si existe el original
+            if(false === $viewResolver->resolve($originalTemplate))
+                $viewModel->setTemplate('zf-joacub-crud/grid');
+            
             return $viewModel;
         } else {
             return $this->forward()->dispatch($this->params('controller'), array('action' => $this->params()->fromPost('cmd')));
@@ -70,6 +87,7 @@ class DataGridController extends AbstractActionController
         $requestParams = $this->getRequest()->getPost();
 
         $form = $grid->getForm();
+        
         $form->setData($requestParams);
 
         if ($this->getRequest()->isPost() && $form->isValid()) {
@@ -84,12 +102,30 @@ class DataGridController extends AbstractActionController
 
             $this->backTo()->goBack('Record created.');
         }
+        
+        $entity =  $grid->getDataSource()->getEntity();
+        $entity = new $entity;
+        $entity->setTranslatableLocale($this->params()->fromQuery('locale', \Locale::getDefault()));
+        
+        $form->bind($entity);
 
         $backUrl = $this->backTo()->getBackUrl(false);
         
         $viewModel = new ViewModel(array('grid' => $grid, 'backUrl' => $backUrl));
-        $viewModel->setTemplate('at-datagrid/create');
-
+        
+        $this->getEvent()->setResult($viewModel);
+        $injectTemplateListener  = new InjectTemplateListener();
+        $injectTemplateListener->injectTemplate($this->getEvent());
+        $model = $this->getEvent()->getResult();
+        $originalTemplate = $model->getTemplate();
+        $originalTemplateBase = dirname($originalTemplate);
+        
+        $viewResolver = $this->getServiceLocator()->get('ViewResolver');
+        
+        //miramos si existe el original
+        if(false === $viewResolver->resolve($originalTemplate))
+            $viewModel->setTemplate('zf-joacub-crud/create');
+        
         return $viewModel;
     }
 
@@ -134,6 +170,7 @@ class DataGridController extends AbstractActionController
         }
 
         $item = $grid->getRow($itemId);
+        
         $item->setTranslatableLocale($this->params()->fromQuery('locale', \Locale::getDefault()));
         $this->getGrid()->getDataSource()->getEm()->refresh($item);
         if(is_object($item)) {
@@ -173,14 +210,76 @@ class DataGridController extends AbstractActionController
 
         //$currentPanel = $this->getRequest()->getParam('panel');
         //$this->view->panel = $currentPanel;
-
-        $viewModel = new ViewModel(array(
+        
+        $varsModel = array(
             'grid' => $grid,
             'item' => $item,
             'backUrl' => $backUrl
-        ));
-        $viewModel->setTemplate('at-datagrid/edit');
+        );
 
+        $viewModel = new ViewModel($varsModel);
+        
+        $this->getEvent()->setResult($viewModel);
+        $injectTemplateListener  = new InjectTemplateListener();
+        $injectTemplateListener->injectTemplate($this->getEvent());
+        $model = $this->getEvent()->getResult();
+        $originalTemplate = $model->getTemplate();
+        $originalTemplateBase = dirname($originalTemplate);
+        
+        $viewResolver = $this->getServiceLocator()->get('ViewResolver');
+        
+        //miramos si existe el original
+        if(false === $viewResolver->resolve($originalTemplate))
+            $viewModel->setTemplate('zf-joacub-crud/edit');
+        
+        //sumary panels
+        $viewPanelSumary = new ViewModel($varsModel);
+        $viewPanelSumary->setTemplate($originalTemplateBase . '/panels/summary');
+        if(false === $viewResolver->resolve($viewPanelSumary->getTemplate()))
+            $viewPanelSumary->setTemplate('zf-joacub-crud/panels/summary');
+        
+        //formulario
+        $viewForm = new ViewModel($varsModel);
+        $viewForm->setTemplate($originalTemplateBase . '/form');
+        if(false === $viewResolver->resolve($viewForm->getTemplate()))
+            $viewForm->setTemplate('zf-joacub-crud/form');
+        
+        $viewModel->addChild($viewPanelSumary, 'viewPanelsSumary')
+        ->addChild($viewForm, 'viewForm');
+        
+        
+        /**
+         * esto no es necesario pero podria serlo
+        $viewResolver = $this->getServiceLocator()->get('ViewResolver');
+        
+        $module = substr(get_class($this), 0, strpos(get_class($this), '\\'));
+        
+        $config = $this->getServiceLocator()->get('Configuration');
+        $viewResolver = $this->getServiceLocator()->get('ViewResolver');
+        $themeResolver = new \Zend\View\Resolver\AggregateResolver();
+        if (isset($config[$module]['ZfJoacubCrud']['template_map'])){
+            $viewResolverMap = $this->getServiceLocator()->get('ViewTemplateMapResolver');
+            $viewResolverMap->add($config[$module]['ZfJoacubCrud']['template_map']);
+            $mapResolver = new \Zend\View\Resolver\TemplateMapResolver(
+                $config[$module]['ZfJoacubCrud']['template_map']
+            );
+            $themeResolver->attach($mapResolver);
+        }
+        
+        if (isset($config[$module]['ZfJoacubCrud']['template_path_stack'])){
+            $viewResolverPathStack = $this->getServiceLocator()->get('ViewTemplatePathStack');
+            $viewResolverPathStack->addPaths($config[$module]['ZfJoacubCrud']['template_path_stack']);
+            $pathResolver = new \Zend\View\Resolver\TemplatePathStack(
+                array('script_paths'=>$config[$module]['ZfJoacubCrud']['template_path_stack'])
+            );
+            $defaultPathStack = $this->getServiceLocator()->get('ViewTemplatePathStack');
+            $pathResolver->setDefaultSuffix($defaultPathStack->getDefaultSuffix());
+            $themeResolver->attach($pathResolver);
+        }
+        
+        $viewResolver->attach($themeResolver, 100);
+        */
+        
         return $viewModel;
     }
 

@@ -2,6 +2,7 @@
 
 use Zend\Json\Json;
 use Zend\Form\Form;
+use Zend\Form\Element;
 
 
 $columnsTranslatable = $this->grid->getDataSource()->getColumnsTranslatable();
@@ -29,6 +30,14 @@ $printForm = function() use($form, $columnsTranslatableKeys, $instanceView) {
     ?>
     
     <?php foreach ($form->getElements() as $element): ?>
+    <?php 
+    $element instanceof Element;
+    $element->setOptions(array('extended' => array(
+'help' => array('style' => 'block', 'content' => 'do some stuff'),
+'prepend' => '$',
+'append' => isset($columnsTranslatableKeys[$element->getName()]) ? $flag : ''
+)));
+    ?>
 <div class="control-group">
             <?php if ($element->getAttribute('type') == 'hidden'): ?>
                 <?php echo $instanceView->formHidden($element) ?>
@@ -81,6 +90,11 @@ $locales = $this->joacubBaseLocale()->getLocaleSupported();
 </div>
 
 <?php 
+else:
+$printForm();
+?>
+
+<?php 
 endif;
 
 ?>
@@ -101,7 +115,7 @@ $('#tabslangs a').on('shown', function (e) {
 
     	$tab.height(200);
         
-        $tab.block({ message: '<img  src="<?php echo $this->basePath(); ?>/img/at-datagrid/ajax-loader.gif" alt="Cargando..." >', css: {height:'128px', width:'128px', background: 'transparent', border: 'none'} });
+        $tab.block({ message: '<img  src="<?php echo $this->basePath(); ?>/img/zf-joacub-crud/ajax-loader.gif" alt="Cargando..." >', css: {height:'128px', width:'128px', background: 'transparent', border: 'none'} });
         
     	var iframe = $('<iframe>').hide().attr('src', $(this).attr('href')).load(function() {
     	    var content = $(this).contents().find('#tabslangs + .tab-content #'+$tab.attr('id')).html();

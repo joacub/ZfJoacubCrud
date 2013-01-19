@@ -25,11 +25,19 @@ a.sortable:hover {text-decoration: none;}
 .item-info .info {font-size: 14px;}
 
 /* general */
-div.left {
+.left {
 	float:left;
 }
 
+.right {
+	float:right;
+}
 
+.clear {
+	clear:both;
+}
+
+/* pagination */
 .container-buttons-pagination .btn-toolbar {
 	margin-right:20px;
 	float:left;
@@ -39,3 +47,4 @@ div.left {
 	float:left;
 	margin-top:11px;
 }
+
