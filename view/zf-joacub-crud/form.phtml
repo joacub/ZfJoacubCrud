@@ -1,9 +1,7 @@
 <?php
-
 use Zend\Json\Json;
 use Zend\Form\Form;
 use Zend\Form\Element;
-
 
 $columnsTranslatable = $this->grid->getDataSource()->getColumnsTranslatable();
 $columnsTranslatableKeys = array_fill_keys($columnsTranslatable, true);
@@ -12,95 +10,127 @@ $form = $this->grid->getForm();
 $instanceView = $this;
 $form instanceof Form;
 
-$printForm = function() use($form, $columnsTranslatableKeys, $instanceView) {
+$printForm = function ($displayOptions = array()) use($form, $columnsTranslatableKeys, 
+$instanceView)
+{
+    $formType = 'horizontal';
     
-    $form->prepare();
-    $form->setAttribute('action', $instanceView->url(null, array(), array(), true));
+    $form->setAttribute('action', 
+        $instanceView->url(null, array(), array(), true));
     $form->setAttribute('method', 'post');
     $localeElement = $form->get('locale');
-    
-    $flag = $instanceView->delCountriesFlagsFlag(Locale::getRegion($localeElement->getValue()), 'tiny');
-    
     $form->setAttribute('id', 'datagrid-form-' . $localeElement->getValue());
     $form->setAttribute('class', 'form-horizontal grid-form');
     
+    $form->prepare();
     
     $instanceView->zfJoacubFormJqueryValidatePrepare('create-form');
-    echo $instanceView->form()->openTag($form);
+    echo $instanceView->formTwb()->openTag($form, $formType);
     ?>
     
     <?php foreach ($form->getElements() as $element): ?>
-    <?php 
-    $element instanceof Element;
-    $element->setOptions(array('extended' => array(
-'help' => array('style' => 'block', 'content' => 'do some stuff'),
-'prepend' => '$',
-'append' => isset($columnsTranslatableKeys[$element->getName()]) ? $flag : ''
-)));
-    ?>
-<div class="control-group">
-            <?php if ($element->getAttribute('type') == 'hidden'): ?>
-                <?php echo $instanceView->formHidden($element) ?>
-            <?php else: ?>
-                <?php $element->setLabelAttributes(array('class' => 'control-label')); ?>
-                <?php 
-                if ($element->getLabel())
-            	{
-            		echo $instanceView->formLabel($element);
-            	}
-            	?>
-                <div class="controls">
-                    <?php echo $instanceView->formElement($element)  ?> <?php echo isset($columnsTranslatableKeys[$element->getName()]) ? $flag : '' ?>
-                    <p class="help-block">
-                        <?php echo $instanceView->formElementErrors($element); ?>
-                    </p>
-	</div>
-            <?php endif; ?>
-        </div>
-<?php endforeach; ?>
+            <?php echo $instanceView->formRowTwb($element, $formType, (isset($displayOptions['elements'][$element->getName()]) ? $displayOptions['elements'][$element->getName()] : array())); ?>
+
+    <?php endforeach; ?>
 
 <div class="form-actions">
-	<button type="submit" class="btn btn-info">Save</button>
+	<button type="submit" data-loading-text="Guardando..."
+		class="btn btn-primary">Guardar</button>
 </div>
 
-<?php echo $instanceView->form()->closeTag();
+<?php
+    
+echo $instanceView->formTwb()->closeTag($form, $formType);
 };
 
-
 if($grid->getDataSource()->isTranslationTable()) :
-$localeElement = $form->get('locale');
-$localeElement->setAttribute('type', 'hidden');
-$locales = $this->joacubBaseLocale()->getLocaleSupported();
-?>
+    $localeElement = $form->get('locale');
+    $localeElement->setAttribute('type', 'hidden');
+    $locales = $this->joacubBaseLocale()->getLocaleSupported();
+    
+    echo '<style>';
+    foreach ($locales as $locale) {
+        $flag = $instanceView->delCountriesFlagsFlag(Locale::getRegion($locale), 
+            'tiny');
+        $iconLocale = 'icon-locale-' . $locale;
+        echo '.' . $iconLocale . ' {
+            background-image: url("' . $flag . '");
+            background-position: center center;
+        }';
+    }
+    echo '</style>';
+    
+    $displayOptions = array(
+        // The class attribute added to the form tag
+        // 'class' => 'my-form-class',
+        'elements' => array()
+    );
+    
+    foreach ($columnsTranslatable as $column) {
+        $element = $form->get($column);
+        if(isset($columnsTranslatableKeys[$element->getName()])) {
+            $iconLocale = 'icon-locale-' . $localeElement->getValue();
+            $displayOptions['elements'][$element->getName()]['appendIcon'] = $iconLocale;
+        }
+    }
+    
+    ?>
 <div class="tabbable">
 	<!-- Only required for left/right tabs -->
 	<ul id="tabslangs" class="nav nav-tabs">
 	<?php foreach ($locales as $locale):  ?>
-		<li <?php echo $localeElement->getValue() !== $locale ? null : 'class="active"'?>><a href="<?php echo $this->joacubBaseQueryParams(array('locale' => $locale), true); ?>#tab-joacub-crud-locale-<?php echo $locale ?>" data-toggle="tab"><?php echo ucfirst(Locale::getDisplayLanguage($locale)) ?></a></li>
+		<li
+			<?php echo $localeElement->getValue() !== $locale ? null : 'class="active"'?>><a
+			href="<?php echo $this->joacubBaseQueryParams(array('locale' => $locale), true); ?>#tab-joacub-crud-locale-<?php echo $locale ?>"
+			data-toggle="tab">
+			<?php 
+			echo $instanceView->delCountriesFlagsFlag(Locale::getRegion($locale),
+			    'tiny', false);
+			?> 
+			<?php echo ucfirst(Locale::getDisplayLanguage($locale)) ?></a></li>
 		<?php endforeach; ?>
 	</ul>
 	<div class="tab-content">
 	<?php foreach($locales as $locale): ?>
 	
-		<div class="tab-pane <?php echo $localeElement->getValue() !== $locale ? null : 'active'?>" id="tab-joacub-crud-locale-<?php echo $locale ?>">
-			<?php $localeElement->getValue() !== $locale ?: $printForm(); ?>
+		<div
+			class="tab-pane <?php echo $localeElement->getValue() !== $locale ? null : 'active'?>"
+			id="tab-joacub-crud-locale-<?php echo $locale ?>">
+			<?php $localeElement->getValue() !== $locale ?: $printForm($displayOptions); ?>
 		</div>
 		<?php endforeach; ?>
 	</div>
 </div>
 
-<?php 
-else:
-$printForm();
-?>
 
-<?php 
-endif;
+ <?php else :
+    $printForm();
+    ?>
+
+
+<?php endif;
 
 ?>
 
 <script type="text/javascript">
 //<!--
+$(document).ready(function(){
+
+	// button state demo
+    $('button[data-loading-text]').closest('form')
+      .on('submit', function () {
+        var btn = $('button[data-loading-text]')
+        var form = $(this);
+        btn.button('loading')
+        setInterval(function () {
+            if(form.find('.error').length > 0) {
+            	btn.button('reset')
+            }
+          
+        }, 1000)
+      })
+      
+});
 
 $('#tabslangs a').on('shown', function (e) {
     var parts = $(this).attr('href').split('#');
@@ -125,7 +155,6 @@ $('#tabslangs a').on('shown', function (e) {
                 eval($(this).text());
             });
 
-            $(this).remove();
             $tab.unblock();
     	});
     	
