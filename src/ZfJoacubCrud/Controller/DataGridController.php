@@ -182,17 +182,23 @@ class DataGridController extends AbstractActionController
         if(!$grid->getCaption())
         $grid->setCaption($item[$grid->getTitleColumnName()]);
         
+        
+        $serviceLocator = $this->getServiceLocator()->get('Application');
+        $routeMatch  = $serviceLocator->getMvcEvent()->getRouteMatch();
+        $router      = $serviceLocator->getMvcEvent()->getRouter();
+        $routeMatchName = $routeMatch->getMatchedRouteName();
+        
         $navigation = $this->getEvent()->getApplication()->getServiceManager()->get('viewrenderer')->getEngine()->plugin('navigation', array('navigation'));
         
         $container = $navigation->setContainer('admin_navigation')->getContainer();
         $container instanceof \Zend\Navigation\Navigation;
         $container = $container->findOneBy('route',
-            'zfcadmin/CustomediaGestion/articles')->findOneBy('params', array('action' => 'list'));
+            $routeMatchName)->findOneBy('params', array('action' => 'list'));
         $container instanceof \Zend\Navigation\Page\Mvc;
         $pages = new \Zend\Navigation\Page\Mvc(
             array(
                 'label' => $grid->getCaption(),
-                'route' => 'zfcadmin/CustomediaGestion/articles',
+                'route' => $routeMatchName,
                 'params' => array(
                     'action' => 'edit',
                     'id' => $this->params('id')
@@ -200,9 +206,7 @@ class DataGridController extends AbstractActionController
                 'visible' => false
             ));
         
-        $serviceLocator = $this->getServiceLocator()->get('Application');
-        $routeMatch  = $serviceLocator->getMvcEvent()->getRouteMatch();
-        $router      = $serviceLocator->getMvcEvent()->getRouter();
+        
         $pages->setRouteMatch($routeMatch);
         $pages->setDefaultRouter($router);
         

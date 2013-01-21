@@ -29,7 +29,12 @@ $instanceView)
     ?>
     
     <?php foreach ($form->getElements() as $element): ?>
-            <?php echo $instanceView->formRowTwb($element, $formType, (isset($displayOptions['elements'][$element->getName()]) ? $displayOptions['elements'][$element->getName()] : array())); ?>
+    <?php if($element->getAttribute('type') == 'hidden'): ?>
+    <?php echo $instanceView->formHidden($element); ?>
+    <?php else: ?>
+    <?php echo $instanceView->formRowTwb($element, $formType, (isset($displayOptions['elements'][$element->getName()]) ? $displayOptions['elements'][$element->getName()] : array())); ?>
+    <?php endif; ?>
+            
 
     <?php endforeach; ?>
 
