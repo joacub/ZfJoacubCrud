@@ -2,9 +2,14 @@
 use Zend\Json\Json;
 use Zend\Form\Form;
 use Zend\Form\Element;
+use Nette\Diagnostics\Debugger;
 
-$columnsTranslatable = $this->grid->getDataSource()->getColumnsTranslatable();
-$columnsTranslatableKeys = array_fill_keys($columnsTranslatable, true);
+$columnsTranslatableKeys = null;
+if( $this->grid->getDataSource()->isTranslationTable() ) {
+    $columnsTranslatable = $this->grid->getDataSource()->getColumnsTranslatable();
+    $columnsTranslatableKeys = array_fill_keys($columnsTranslatable, true);
+}
+ 
 $grid = $this->grid;
 $form = $this->grid->getForm();
 $instanceView = $this;
@@ -18,8 +23,15 @@ $instanceView)
     $form->setAttribute('action', 
         $instanceView->url(null, array(), array(), true));
     $form->setAttribute('method', 'post');
-    $localeElement = $form->get('locale');
-    $form->setAttribute('id', 'datagrid-form-' . $localeElement->getValue());
+    
+    //si contiene idiomas
+    if($instanceView->grid->getDataSource()->isTranslationTable()) {
+        $localeElement = $form->get('locale');
+        $form->setAttribute('id', 'datagrid-form-' . $localeElement->getValue());
+    } else {
+        $form->setAttribute('id', 'datagrid-form');
+    }
+    
     $form->setAttribute('class', 'form-horizontal grid-form');
     
     $form->prepare();
@@ -170,12 +182,14 @@ $('#tabslangs a').on('shown', function (e) {
     
     })
     
+    <?php if(isset($columnsTranslatable)): ?>
     var columnsTranslatable = <?php echo Json::encode($columnsTranslatable); ?>;
     $('input, textarea').on('change', function() {
     	if(columnsTranslatable[$(this).attr('name')]) {
     	    $('[name="'+$(this).attr('name')+'"]').val($(this).val());
     	}
     });
+    <?php endif; ?>
 //-->
 </script>
 

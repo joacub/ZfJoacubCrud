@@ -12,6 +12,7 @@ use Zend\Navigation\Navigation;
 use Zend\Mvc\MvcEvent;
 use Zend\Mvc\View\Http\InjectTemplateListener;
 use Zend\Loader\AutoloaderFactory;
+use CustomediaGestionSuppliers\Entity\Suppliers;
 
 class DataGridController extends AbstractActionController
 {
@@ -87,11 +88,17 @@ class DataGridController extends AbstractActionController
         $requestParams = $this->getRequest()->getPost();
 
         $form = $grid->getForm();
-        
         $form->setData($requestParams);
-
+        
+        $entityClassName = $grid->getDataSource()->getEntity();
+        
+        $entity = $form->getHydrator()->hydrate($requestParams->toArray(), new $entityClassName());
+        $form->bind($entity);
+                
         if ($this->getRequest()->isPost() && $form->isValid()) {
+            
             $formData = $this->preSave($form);
+
             $itemId = $grid->save($formData);
             
             if($grid->getDataSource() instanceof DoctrineDbTableGateway) {
@@ -103,9 +110,8 @@ class DataGridController extends AbstractActionController
             $this->backTo()->goBack('Record created.');
         }
         
-        $entity =  $grid->getDataSource()->getEntity();
-        $entity = new $entity;
-        $entity->setTranslatableLocale($this->params()->fromQuery('locale', \Locale::getDefault()));
+        if($this->grid->getDataSource()->isTranslationTable())
+            $entity->setTranslatableLocale($this->params()->fromQuery('locale', \Locale::getDefault()));
         
         $form->bind($entity);
 
@@ -141,19 +147,27 @@ class DataGridController extends AbstractActionController
         $grid = $this->getGrid();
         
         if (!$grid->isAllowEdit()) {
-            throw new \Exception('You are not allowed to do this.');
+            throw new \Exception('No se le permite hacer esto.');
         }
 
         $itemId = $this->params('id');
 
         if (!$itemId) {
-            throw new \Exception('No record found.');
+            throw new \Exception('No se encontró registro.');
         }
 
         $requestParams = $this->getRequest()->getPost();
 
         $form = $grid->getForm();
         $form->setData($requestParams);
+        
+        $entityClassName = $grid->getDataSource()->getEntity();
+        $entity = $form->getHydrator()->hydrate($requestParams->toArray(), new $entityClassName());
+        
+        $identifier = $grid->getDataSource()->getIdentifierFieldName();
+        
+        $entity->{"set$identifier"}($itemId);
+        $form->bind($entity);
 
         
         if ($this->getRequest()->isPost() && ($isValid = $form->isValid())) {
@@ -166,13 +180,21 @@ class DataGridController extends AbstractActionController
             
             $this->postSave($grid, $itemId);
 
-            $this->backTo()->goBack('Record updated.');
+            $this->backTo()->goBack('Registro actualizado.');
         }
 
         $item = $grid->getRow($itemId);
         
-        $item->setTranslatableLocale($this->params()->fromQuery('locale', \Locale::getDefault()));
-        $this->getGrid()->getDataSource()->getEm()->refresh($item);
+        if (!$item) {
+            throw new \Exception('No se encontró registro.');
+        }
+        
+        if(method_exists($item, 'setTranslatableLocale')) {
+            $item->setTranslatableLocale($this->params()->fromQuery('locale', \Locale::getDefault()));
+            $this->getGrid()->getDataSource()->getEm()->refresh($item);
+        }
+            
+        
         if(is_object($item)) {
             $item = $item->getArrayCopy();
         }
@@ -192,25 +214,33 @@ class DataGridController extends AbstractActionController
         
         $container = $navigation->setContainer('admin_navigation')->getContainer();
         $container instanceof \Zend\Navigation\Navigation;
+        
         $container = $container->findOneBy('route',
-            $routeMatchName)->findOneBy('params', array('action' => 'list'));
-        $container instanceof \Zend\Navigation\Page\Mvc;
-        $pages = new \Zend\Navigation\Page\Mvc(
-            array(
-                'label' => $grid->getCaption(),
-                'route' => $routeMatchName,
-                'params' => array(
-                    'action' => 'edit',
-                    'id' => $this->params('id')
-                ),
-                'visible' => false
-            ));
+            $routeMatchName);
         
+        if($container) {
+            $container = $container->findOneBy('params', array('action' => 'list'));
+        } 
         
-        $pages->setRouteMatch($routeMatch);
-        $pages->setDefaultRouter($router);
-        
-        $container->addPage($pages);
+        if($container) {
+            $container instanceof \Zend\Navigation\Page\Mvc;
+            $pages = new \Zend\Navigation\Page\Mvc(
+                array(
+                    'label' => $grid->getCaption(),
+                    'route' => $routeMatchName,
+                    'params' => array(
+                        'action' => 'edit',
+                        'id' => $this->params('id')
+                    ),
+                    'visible' => false
+                ));
+            
+            
+            $pages->setRouteMatch($routeMatch);
+            $pages->setDefaultRouter($router);
+            
+            $container->addPage($pages);
+        }
 
         //$currentPanel = $this->getRequest()->getParam('panel');
         //$this->view->panel = $currentPanel;

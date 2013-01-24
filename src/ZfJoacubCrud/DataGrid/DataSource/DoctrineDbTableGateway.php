@@ -81,9 +81,10 @@ class DoctrineDbTableGateway extends AbstractDataSource
 		// detectamos si la tabla contiene o no traducciones y lo anotamos
 		$translatableListener = new TranslatableListener();
 		$config = $translatableListener->getConfiguration($this->getEm(), $this->getEntity());
-		$this->setIsTranslationTable((bool) count($config['fields']) > 0);
+		$this->setIsTranslationTable((bool) isset($config['fields']));
 		
-		$this->setColumnsTranslatable($config['fields']);
+		if($this->isTranslationTable())
+		    $this->setColumnsTranslatable($config['fields']);
 
 		$this->setQueryBuilder();
         $this->columns = $this->loadColumns();
@@ -260,13 +261,23 @@ class DoctrineDbTableGateway extends AbstractDataSource
             
         }
         
+        foreach($mapping->associationMappings as $map) {
+            $columnName = $map['fieldName'];
+            $columnDataType = $map['type'];
+            
+            $column = new Column\Literal($columnName);
+            $column->setLabel($columnName);
+            
+            $columns[$columnName] = $column;
+        }
+        
         // Setup default settings for joined table column fields
-        foreach ($this->joinedColumns as $columnName) {
+        /*foreach ($this->joinedColumns as $columnName) {
             $column = new Column\Literal($columnName);
             $column->setLabel($columnName);
         
             $columns[$columnName] = $column;
-        }
+        }*/
         
         //$this->setCommentAsLabel($columns);
         
@@ -366,7 +377,8 @@ class DoctrineDbTableGateway extends AbstractDataSource
     public function insert($data)
     {
     	$em = $this->getEm();
-    	$entity = new FArticle();
+    	$entityName = $this->getEntity();
+    	$entity = new $entityName();
     	
     	$entity->populateData($data);
     	

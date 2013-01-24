@@ -5,6 +5,8 @@ $form->prepare();
 $form->setAttribute('action', $this->url(null, array('action' => 'list')));
 $form->setAttribute('method', 'get');
 $form->setAttribute('id', 'datagrid-filters-form');
+
+$this instanceof Zend\View\Renderer\PhpRenderer;
 $filtersClean = array();
 echo $this->form()->openTag($form);
 ?>
@@ -26,7 +28,7 @@ echo $this->form()->openTag($form);
         <td>
             <div class="btn-group right">
                 <button class="btn btn-info btn-small" type="submit" title="<?php echo $this->translate('Apply filters'); ?>"><i class="icon-search icon-white"></i></button>
-                <a class="btn btn-danger btn-small" href="<?php echo $this->url(null, $filtersClean, true)?>" title="<?php echo $this->translate('Reset filters'); ?>"><i class="icon-remove icon-white"></i></a>
+                <a class="btn btn-danger btn-small" href="<?php echo $this->url(null, array('id' => $this->getHelperPluginManager()->getServiceLocator()->get('controllerpluginmanager')->get('params')->fromRoute('id', 0)) + $filtersClean, true)?>" title="<?php echo $this->translate('Reset filters'); ?>"><i class="icon-remove icon-white"></i></a>
             </div>
         </td>
     </tr>
