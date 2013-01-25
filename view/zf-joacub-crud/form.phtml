@@ -48,8 +48,8 @@ $instanceView)
     <?php echo $instanceView->formRowTwb($element, $formType, (isset($displayOptions['elements'][$element->getName()]) ? $displayOptions['elements'][$element->getName()] : array())); ?>
     <?php 
     if($element instanceof Textarea) {
-        /*echo $this->JoacubCKEditor(
-                $element->getName(),
+        echo $this->JoacubCKEditor(
+                $element->getName() . 's',
                 array('Width' => "80%",
                     'Height' => "340",
                     'Color' => "#000",
@@ -63,7 +63,7 @@ $instanceView)
                         array('Image','Table')
                     )
                 )
-            );*/
+            );
 $element->setAttribute('class', 'editable ckeditor');
     }
     ?>
