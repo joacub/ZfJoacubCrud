@@ -3,6 +3,7 @@ use Zend\Json\Json;
 use Zend\Form\Form;
 use Zend\Form\Element;
 use Nette\Diagnostics\Debugger;
+use Zend\Form\Element\Textarea;
 
 $columnsTranslatableKeys = null;
 if( $this->grid->getDataSource()->isTranslationTable() ) {
@@ -44,6 +45,26 @@ $instanceView)
     <?php if($element->getAttribute('type') == 'hidden'): ?>
     <?php echo $instanceView->formHidden($element); ?>
     <?php else: ?>
+    <?php 
+    if($element instanceof Textarea) {
+        echo $this->JoacubCKEditor(
+                $element->getName(),
+                array('Width' => "80%",
+                    'Height' => "340",
+                    'Color' => "#000",
+                    'Toolbar'=> array(
+                        array('Source','Maximize'),
+                        array('Templates','Styles','Format'),
+                        array('Bold','Italic','Underline','Subscript','Superscript'),
+                        array('NumberedList','BulletedList','Outdent','Indent'),
+                        array('JustifyLeft','JustifyCenter','JustifyRight'),
+                        array('Link','Unlink'),
+                        array('Image','Table')
+                    )
+                )
+            );
+    }
+    ?>
     <?php echo $instanceView->formRowTwb($element, $formType, (isset($displayOptions['elements'][$element->getName()]) ? $displayOptions['elements'][$element->getName()] : array())); ?>
     <?php endif; ?>
             

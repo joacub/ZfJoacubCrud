@@ -162,10 +162,12 @@ class DataGridController extends AbstractActionController
         $form->setData($requestParams);
         
         $entityClassName = $grid->getDataSource()->getEntity();
-        $entity = $form->getHydrator()->hydrate($requestParams->toArray(), new $entityClassName());
         
+            //$entity = $form->getHydrator()->hydrate($requestParams->toArray(), new $entityClassName());
+            
         $identifier = $grid->getDataSource()->getIdentifierFieldName();
         
+        $entity =  new $entityClassName();
         $entity->{"set$identifier"}($itemId);
         $form->bind($entity);
 
@@ -195,11 +197,11 @@ class DataGridController extends AbstractActionController
         }
             
         
-        if(is_object($item)) {
+        /*if(is_object($item)) {
             $item = $item->getArrayCopy();
-        }
+        }*/
         
-        $form->setData($item);
+        $form->bind($item);
         
         if(!$grid->getCaption())
         $grid->setCaption($item[$grid->getTitleColumnName()]);
