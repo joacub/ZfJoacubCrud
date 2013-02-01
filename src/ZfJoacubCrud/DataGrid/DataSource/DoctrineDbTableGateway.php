@@ -399,8 +399,13 @@ class DoctrineDbTableGateway extends AbstractDataSource
     {
         $em = $this->getEm();
         
-        $entity = $this->find($key);
-        $entity->populateData($data);
+        $entityName = $this->getEntity();
+        if(is_object($data) && $entityName == get_class($data)) {
+            $entity = $data;
+        } else {
+            $entity = $this->find($key);
+            $entity->populateData($data);
+        }
        
         $em->persist($entity);
         return $entity;

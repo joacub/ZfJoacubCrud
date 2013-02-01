@@ -829,6 +829,16 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
             
             // Collect elements
             foreach ($this->getColumns() as $column) {
+                
+                
+                $formElement = $form->get($column->getName());
+                
+                if($formElement) {
+                    $optionsElement = $column->getFormElement()->getOptions();
+                    $column->setFormElement($formElement);
+                    $formElement->setOptions($optionsElement + $formElement->getOptions());
+                }
+                
                 if (!$column->isVisibleInForm()) {
                     $form->remove($column->getName());
                     $form->getInputFilter()->remove($column->getName());

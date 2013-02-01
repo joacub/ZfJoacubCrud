@@ -5,6 +5,8 @@ use Zend\Form\Element;
 use Nette\Diagnostics\Debugger;
 use Zend\Form\Element\Textarea;
 
+$this->headLink()->appendStylesheet($this->basePath() . '/dlu-tw-bootstrap/css/dlu-tw-bootstrap.css');
+
 $columnsTranslatableKeys = null;
 if( $this->grid->getDataSource()->isTranslationTable() ) {
     $columnsTranslatable = $this->grid->getDataSource()->getColumnsTranslatable();
@@ -46,21 +48,13 @@ $instanceView)
     <?php echo $instanceView->formHidden($element); ?>
     <?php else: ?>
     <?php 
-    if($element instanceof Textarea) {
-        echo $this->JoacubCKEditor(
+    
+    $options = $element->getOption('ckeditor');
+    
+    if(is_array($options)) {
+        $this->JoacubCKEditor(
             $element->getName(),
-            array('Width' => "99%",
-                'Height' => "340",
-                'Toolbar'=> array(
-                    array('Source','Maximize'),
-                    array('Templates','Styles','Format'),
-                    array('Bold','Italic','Underline','Subscript','Superscript'),
-                    array('NumberedList','BulletedList','Outdent','Indent'),
-                    array('JustifyLeft','JustifyCenter','JustifyRight'),
-                    array('Link','Unlink'),
-                    array('Image','Table')
-                )
-            )
+            (array) $element->getOption('ckeditor')
         );
     }
     ?>
@@ -105,6 +99,7 @@ if($grid->getDataSource()->isTranslationTable()) :
     
     foreach ($columnsTranslatable as $column) {
         $element = $form->get($column);
+        
         if(isset($columnsTranslatableKeys[$element->getName()])) {
             $iconLocale = 'icon-locale-' . $localeElement->getValue();
             $displayOptions['elements'][$element->getName()]['appendIcon'] = $iconLocale;
@@ -128,8 +123,8 @@ if($grid->getDataSource()->isTranslationTable()) :
 		<?php endforeach; ?>
 	</ul>
 	<div class="tab-content">
-	<?php foreach($locales as $locale): ?>
 	
+	<?php foreach($locales as $locale): ?>
 		<div
 			class="tab-pane <?php echo $localeElement->getValue() !== $locale ? null : 'active'?>"
 			id="tab-joacub-crud-locale-<?php echo $locale ?>">

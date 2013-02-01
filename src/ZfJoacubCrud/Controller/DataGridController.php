@@ -13,6 +13,8 @@ use Zend\Mvc\MvcEvent;
 use Zend\Mvc\View\Http\InjectTemplateListener;
 use Zend\Loader\AutoloaderFactory;
 use CustomediaGestionSuppliers\Entity\Suppliers;
+use DoctrineModule\Stdlib\Hydrator\Strategy\DisallowRemoveByValue;
+use Zend\Form\FormInterface;
 
 class DataGridController extends AbstractActionController
 {
@@ -80,7 +82,7 @@ class DataGridController extends AbstractActionController
     public function createAction()
     {
         $grid = $this->getGrid();
-
+        
         if (!$grid->isAllowCreate()) {
             throw new \Exception('You are not allowed to do this.');
         }
@@ -88,32 +90,40 @@ class DataGridController extends AbstractActionController
         $requestParams = $this->getRequest()->getPost();
 
         $form = $grid->getForm();
-        $form->setData($requestParams);
         
         $entityClassName = $grid->getDataSource()->getEntity();
+        $entity = new $entityClassName();
         
-        $entity = $form->getHydrator()->hydrate($requestParams->toArray(), new $entityClassName());
-        $form->bind($entity);
-                
-        if ($this->getRequest()->isPost() && $form->isValid()) {
+        if($this->grid->getDataSource()->isTranslationTable()) {
+            $entity->setLocale($this->params()->fromQuery('locale', \Locale::getDefault()));
             
-            $formData = $this->preSave($form);
-
-            $itemId = $grid->save($formData);
-            
-            if($grid->getDataSource() instanceof DoctrineDbTableGateway) {
-                $grid->getDataSource()->getEm()->flush();
-            }
-            
-            $this->postSave($grid, $itemId);
-
-            $this->backTo()->goBack('Record created.');
+            //hacemos esto por si no esta definida la columna locale dentro de la entidad y es una referencia inexistente utilizada internamente
+            $form->get('locale')->setValue($entity->getLocale());
         }
         
-        if($this->grid->getDataSource()->isTranslationTable())
-            $entity->setTranslatableLocale($this->params()->fromQuery('locale', \Locale::getDefault()));
-        
         $form->bind($entity);
+                
+        if ($this->getRequest()->isPost()) { 
+            
+            $form->setData($requestParams);
+            
+            if($form->isValid()) {
+                
+                $formData = $this->preSave($form);
+                
+                $itemId = $grid->save($formData);
+                
+                if($grid->getDataSource() instanceof DoctrineDbTableGateway) {
+                    $grid->getDataSource()->getEm()->flush();
+                }
+                
+                $this->postSave($grid, $itemId);
+                
+                $this->backTo()->goBack('Record created.');
+                
+            }
+        }
+            
 
         $backUrl = $this->backTo()->getBackUrl(false);
         
@@ -155,25 +165,31 @@ class DataGridController extends AbstractActionController
         if (!$itemId) {
             throw new \Exception('No se encontró registro.');
         }
-
+        
+        $entity = $grid->getRow($itemId);
+        
         $requestParams = $this->getRequest()->getPost();
 
         $form = $grid->getForm();
-        $form->setData($requestParams);
+        
+        
         
         $entityClassName = $grid->getDataSource()->getEntity();
+       // Debugger::dump($requestParams->toArray());
         
-            //$entity = $form->getHydrator()->hydrate($requestParams->toArray(), new $entityClassName());
-            
+        
+        /*$entity = $form->getHydrator()->hydrate($requestParams->toArray(), $entity);
+        Debugger::dump($entity->getCategories());exit('ad');
         $identifier = $grid->getDataSource()->getIdentifierFieldName();
         
         $entity =  new $entityClassName();
-        $entity->{"set$identifier"}($itemId);
+        $entity->{"set$identifier"}($itemId);*/
         $form->bind($entity);
-
-        
+        $form->setData($requestParams);
         if ($this->getRequest()->isPost() && ($isValid = $form->isValid())) {
+            
             $data = $this->preSave($form);
+            
             $grid->save($data, $itemId);
             
             if($grid->getDataSource() instanceof DoctrineDbTableGateway) {
@@ -191,20 +207,22 @@ class DataGridController extends AbstractActionController
             throw new \Exception('No se encontró registro.');
         }
         
-        if(method_exists($item, 'setTranslatableLocale')) {
-            $item->setTranslatableLocale($this->params()->fromQuery('locale', \Locale::getDefault()));
+        if(method_exists($item, 'setLocale')) {
+            $item->setLocale($this->params()->fromQuery('locale', \Locale::getDefault()));
             $this->getGrid()->getDataSource()->getEm()->refresh($item);
-        }
+            $form->bind($item);
+            $form->get('locale')->setValue($item->getLocale());
             
-        
-        /*if(is_object($item)) {
+        } else {
+            
+            $form->bind($item);
+        }
+        if(is_object($item)) {
             $item = $item->getArrayCopy();
-        }*/
-        
-        $form->bind($item);
+        }
         
         if(!$grid->getCaption())
-        $grid->setCaption($item[$grid->getTitleColumnName()]);
+            $grid->setCaption($item[$grid->getTitleColumnName()]);
         
         
         $serviceLocator = $this->getServiceLocator()->get('Application');
