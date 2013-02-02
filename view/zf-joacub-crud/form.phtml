@@ -57,8 +57,16 @@ $instanceView)
             (array) $element->getOption('ckeditor')
         );
     }
+    
+    $options = $element->getOption('JoacubUploader');
+    
+    if($options) {
+        echo preg_replace('/<input(.*?)>/is', str_replace('form', 'div', ((string) $options)), (string) $instanceView->formRowTwb($element, $formType, (isset($displayOptions['elements'][$element->getName()]) ? $displayOptions['elements'][$element->getName()] : array())));
+    } else {
+        echo $instanceView->formRowTwb($element, $formType, (isset($displayOptions['elements'][$element->getName()]) ? $displayOptions['elements'][$element->getName()] : array()));
+    }
+    
     ?>
-    <?php echo $instanceView->formRowTwb($element, $formType, (isset($displayOptions['elements'][$element->getName()]) ? $displayOptions['elements'][$element->getName()] : array())); ?>
     <?php endif; ?>
             
 
