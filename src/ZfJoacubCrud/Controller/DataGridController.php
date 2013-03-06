@@ -121,6 +121,14 @@ class DataGridController extends AbstractActionController
                 
                 $this->backTo()->goBack('Record created.');
                 
+            } else {
+            	//algo no es valido
+            	Debugger::dump($form);
+            	
+            	foreach ($form->getFieldsets() as $fieldset) {
+            		Debugger::dump($fieldset->getMessages());
+            	}
+            	
             }
         }
             
@@ -171,7 +179,6 @@ class DataGridController extends AbstractActionController
         $requestParams = $this->getRequest()->getPost();
 
         $form = $grid->getForm();
-        
         
         
         $entityClassName = $grid->getDataSource()->getEntity();

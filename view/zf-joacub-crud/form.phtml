@@ -39,15 +39,12 @@ $instanceView)
     
     $form->prepare();
     
+    
     $instanceView->zfJoacubFormJqueryValidatePrepare('create-form');
     echo $instanceView->formTwb()->openTag($form, $formType);
     ?>
-    
-    <?php foreach ($form->getElements() as $element): ?>
-    <?php if($element->getAttribute('type') == 'hidden'): ?>
-    <?php echo $instanceView->formHidden($element); ?>
-    <?php else: ?>
     <?php 
+    foreach ($form->getElements() as $element): 
     
     $options = $element->getOption('ckeditor');
     
@@ -60,17 +57,11 @@ $instanceView)
     
     $options = $element->getOption('JoacubUploader');
     
-    if($options) {
-        echo preg_replace('/<input(.*?)>/is', str_replace('form', 'div', ((string) $options)), (string) $instanceView->formRowTwb($element, $formType, (isset($displayOptions['elements'][$element->getName()]) ? $displayOptions['elements'][$element->getName()] : array())));
-    } else {
-        echo $instanceView->formRowTwb($element, $formType, (isset($displayOptions['elements'][$element->getName()]) ? $displayOptions['elements'][$element->getName()] : array()));
-    }
+    echo $options;
     
-    ?>
-    <?php endif; ?>
-            
-
-    <?php endforeach; ?>
+    endforeach;
+          echo $instanceView->formFieldsetTwb($form, null, $displayOptions);
+          ?>  
 
 <div class="form-actions">
 	<button type="submit" data-loading-text="Guardando..."

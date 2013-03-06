@@ -10,6 +10,8 @@ use Zend\Mvc\Controller\PluginManager;
 use Zend\Form\Form;
 use ZfJoacubCrud\DataGrid\DataSource\AbstractDataSource;
 use Nette\Diagnostics\Debugger;
+use Zend\Form\FormInterface;
+use Zend\Form\Fieldset;
 
 /**
  *
@@ -819,58 +821,94 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
     public final function getForm($options = array())
     {
         if ($this->form == null) {
+        	
+        	if(method_exists($this, 'getCustomForm') && $this->getCustomForm($options) != __CLASS__) {
+        		$form = $this->getCustomForm($options);
+        	} else {
+        		//obtenemos el formulario automaticamente de la entidad en caso de no tener un formulario personalizado
+        		$form = $this->getserviceManager()->get('formGenerator')
+        		->setClass($this->getDataSource()->getEntity())
+        		->getForm();
+        	}
+        		
+            //prepara el formulario 
+            // quita elementos que tenga que quitar y mas
+            $this->prepareForm($form);
             
-            $form = $this->getserviceManager()->get('formGenerator')
-            ->setClass($this->getDataSource()->getEntity())
-            ->getForm();
-            $form instanceof Form;
-            //$form = new ATF_DataGrid_Form();
-            //$form = new \Zend\Form\Form('create-form', $options);
-            
-            // Collect elements
-            foreach ($this->getColumns() as $column) {
-                
-                
-                $formElement = $form->get($column->getName());
-                
-                if($formElement) {
-                    $optionsElement = $column->getFormElement()->getOptions();
-                    $column->setFormElement($formElement);
-                    $formElement->setOptions($optionsElement + $formElement->getOptions());
-                }
-                
-                if (!$column->isVisibleInForm()) {
-                    $form->remove($column->getName());
-                    $form->getInputFilter()->remove($column->getName());
-                    continue;
-                }
-                continue;
-                /* @var \Zend\Form\Element */
-                $element = $column->getFormElement();
-                
-                if(!$form->get($column->getName())->getLabel()) {
-                    $form->get($column->getName())->setLabel($column->getLabel());
-                }
-                
-            }
-
-            if(!$this->getserviceManager()->get('response')->getHeaders()->has('ZfJoacubFormJqueryValidate')) {
-                //Hash element to prevent CSRF attack
-                $csrf = new \Zend\Form\Element\Csrf('hash');
-                $form->add($csrf);
-            }
-
-            // Use this method to add additional element to form
-            // @todo Use Event instead
-            $form = $this->addExtraFormElements($form);
-
-            $this->form = $form;
-            $manager = $this->getserviceManager()->get('ZfJoacubFormJqueryValidate\FormManager');
-            $manager instanceof \Zend\Mvc\Controller\PluginManager;
-            $manager->setService('create-form', $this->form);
         }
 
         return $this->form;
+    }
+    
+    protected function getCustomForm($options = array()) 
+    {
+    	return __CLASS__;	
+    }
+    
+    public function prepareForm(FormInterface $form)
+    {
+    	// Collect elements
+    	foreach ($this->getColumns() as $column) {
+    	
+    	
+    		$formElement = $form->get($column->getName());
+    		
+    		if(!$formElement) {
+    			$fieldsets = $form->getFieldsets();
+    			
+    			foreach($fieldsets as $fieldset) {
+    				$formElement = $fieldset->get($column->getName());
+    				if($formElement)
+    					break;
+    			}
+    		}
+    		
+    		if($formElement) {
+    			$optionsElement = $column->getFormElement()->getOptions();
+    			$column->setFormElement($formElement);
+    			$formElement->setOptions($optionsElement + $formElement->getOptions());
+    		}
+    	
+    		if (!$column->isVisibleInForm()) {
+    			
+    			$form->remove($column->getName());
+    			$form->getInputFilter()->remove($column->getName());
+    			
+    			if(isset($fieldset)) {
+    				$form->getInputFilter()->get($fieldset->getName())->remove(($column->getName()));
+    				$fieldset->remove($column->getName());
+    				$fieldset = false;
+    			}
+    			
+    			continue;
+    		}
+    		continue;
+    		/* @var \Zend\Form\Element */
+    		$element = $column->getFormElement();
+    	
+    		if(!$form->get($column->getName())->getLabel()) {
+    			$form->get($column->getName())->setLabel($column->getLabel());
+    		}
+    	
+    	}
+    	
+    	if(!$this->getserviceManager()->get('response')->getHeaders()->has('ZfJoacubFormJqueryValidate')) {
+    		//Hash element to prevent CSRF attack
+    		$csrf = new \Zend\Form\Element\Csrf('hash');
+    		$form->add($csrf);
+    	}
+    	
+    	// Use this method to add additional element to form
+    	// @todo Use Event instead
+    	$form = $this->addExtraFormElements($form);
+    	
+    	$this->form = $form;
+    	$manager = $this->getserviceManager()->get('ZfJoacubFormJqueryValidate\FormManager');
+    	$manager instanceof \Zend\Mvc\Controller\PluginManager;
+    	
+    	$manager->setService('create-form', $this->form);
+    	
+    	return $form;
     }
 
     /**

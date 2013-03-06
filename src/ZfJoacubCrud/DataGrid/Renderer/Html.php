@@ -148,6 +148,12 @@ class Html extends AbstractRenderer
             $viewModel->setTemplate('zf-joacub-crud/grid/list');
         
         //filters
+        $viewGridflashMessenger = new ViewModel($variables);
+        $viewGridflashMessenger->setTemplate($originalTemplateBase . '/grid/flash-messenger');
+        if(false === $viewResolver->resolve($viewGridflashMessenger->getTemplate()))
+        	$viewGridflashMessenger->setTemplate('zf-joacub-crud/grid/flash-messenger');
+        
+        //filters
         $viewGridFilters = new ViewModel($variables);
         $viewGridFilters->setTemplate($originalTemplateBase . '/grid/filters');
         if(false === $viewResolver->resolve($viewGridFilters->getTemplate()))
@@ -177,23 +183,22 @@ class Html extends AbstractRenderer
         $viewGridPaginationControl = new ViewModel();
         $viewGridPaginationControl->setTemplate($originalTemplateBase . '/grid/pagination-control');
         if(false === $viewResolver->resolve($viewGridPaginationControl->getTemplate())) {
-            $viewGridPaginationControl->setTemplate('zf-joacub-crud/grid/pagination-control');
-        }
-        
-        $viewGridPaginator->setVariable('viewGridPaginationControl', $viewGridPaginationControl->getTemplate());
-        
-        $viewModel->setVariable('viewGridFilters', 
-            $this->getEngine()
-                ->render($viewGridFilters))
-            ->setVariable('viewGridRowsList', 
-            $this->getEngine()
-                ->render($viewGridRowsList))
-        ->setVariable('viewGridRowsGoupActions', 
-            $this->getEngine()
-                ->render($viewGridRowsGoupActions))
-        ->setVariable('viewGridPaginator', 
-            $this->getEngine()
-                ->render($viewGridPaginator));
+			$viewGridPaginationControl->setTemplate(
+					'zf-joacub-crud/grid/pagination-control');
+		}
+		
+		$viewGridPaginator->setVariable('viewGridPaginationControl', $viewGridPaginationControl->getTemplate());
+		
+		$viewModel->setVariable('viewGridflashMessenger', $this->getEngine()
+			->render($viewGridflashMessenger))
+			->setVariable('viewGridFilters', $this->getEngine()
+			->render($viewGridFilters))
+			->setVariable('viewGridRowsList', $this->getEngine()
+			->render($viewGridRowsList))
+			->setVariable('viewGridRowsGoupActions', $this->getEngine()
+			->render($viewGridRowsGoupActions))
+			->setVariable('viewGridPaginator', $this->getEngine()
+			->render($viewGridPaginator));
 
         /*if (!empty($this->cssFile)) {
             $this->getView()->headLink()->appendStylesheet($this->cssFile);

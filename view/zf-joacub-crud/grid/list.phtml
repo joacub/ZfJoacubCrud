@@ -1,36 +1,9 @@
-<?php
+<?php echo $this->viewGridflashMessenger; ?>
 
-$messages = $this->flashMessenger()->render(
-    SuperMessenger\Controller\Plugin\SuperMessenger::SUCCESS_MESSAGE);
-if($messages)
-    echo str_replace(array(
-        '&times;'
-    ), array(
-        '<i class="icon-remove-circle"></i>'
-    ), (string) $this->sxbAlert()->success($messages));
-
-$messages = $this->flashMessenger()->render(
-    SuperMessenger\Controller\Plugin\SuperMessenger::ERROR_MESSAGE);
-if($messages)
-    echo str_replace(array(
-        '&times;'
-    ), array(
-        '<i class="icon-remove-circle"></i>'
-    ), (string) $this->sxbAlert()->error($messages));
-
-$messages = $this->flashMessenger()->render(
-    SuperMessenger\Controller\Plugin\SuperMessenger::INFO_MESSAGE);
-if($messages)
-    echo str_replace(array(
-        '&times;'
-    ), array(
-        '<i class="icon-remove-circle"></i>'
-    ), (string) $this->sxbAlert()->info($messages));
-?>
 <h2><?php echo $this->translate($this->grid->getCaption()) ?></h2>
 <?php if ($this->grid->isAllowCreate()): ?>
 <a class="btn btn-warning"
-	href="<?php echo $this->url(null, array('action' => 'create')) ?>"><?php echo $this->translate('Create new') ?> <i
+	href="<?php echo $this->url(null, array('action' => 'create')) ?>"><?php echo $this->translate('Crear nuevo') ?> <i
 	class="icon-plus-sign"></i></a>
 <?php endif; ?>
 
