@@ -4,15 +4,6 @@ namespace ZfJoacubCrud;
 
 class Module
 {
-    public function getControllerPluginConfig()
-    {
-        return array(
-            'invokables' => array(
-                'backTo' => 'JoacubBase\Mvc\Controller\Plugin\BackTo'
-            ),
-        );
-    }
-
     /**
      * @return mixed
      */

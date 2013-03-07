@@ -2,43 +2,35 @@
 
 namespace ZfJoacubCrud\DataGrid\Renderer;
 
+use Zend\View\Renderer\RendererInterface;
 use Zend\View\Model\ViewModel;
-use Zend\Mvc\View\Http\InjectTemplateListener;
-use Zend\Mvc\MvcEvent;
-use AssetManager\Resolver\AggregateResolverAwareInterface;
-use Zend\View\Resolver\AggregateResolver;
 use Nette\Diagnostics\Debugger;
-use Zend\View\Helper\PaginationControl;
+use Zend\Mvc\View\Http\InjectTemplateListener;
+
 /**
- * @todo Rename to AtAdmin\DataGrid\Renderer\ZendViewPhpRenderer
+ * Class Html
+ * @package AtDataGrid\DataGrid\Renderer
  */
 class Html extends AbstractRenderer
 {
     /**
-     * View object
-     *
-     * @var \Zend\View\Renderer\PhpRenderer
+     * Template rendering engine
+     * @var \Zend\View\Renderer\RendererInterface
      */
-    protected $engine = null;
-    
-    /**
-     * 
-     * @var string;
-     */
-    protected $originalTemplate = null;
-    
-    /**
-     * 
-     * @var AggregateResolverAwareInterface;
-     */
-    protected $resolver;
+    protected $engine;
 
     /**
      * Html template
      *
      * @var string
      */
-    protected $template = 'grid/list';
+    protected $template = 'zf-joacub-crud/grid/list';
+    
+    /**
+     *
+     * @var string;
+     */
+    protected $sm = null;
 
     /**
      * Additional CSS rules
@@ -48,62 +40,26 @@ class Html extends AbstractRenderer
     protected $cssFile = '';
 
     /**
-     * Set view object
+     * @param \Zend\View\Renderer\RendererInterface $engine
+     * @return $this
      */
-    public function setEngine(\Zend\View\Renderer\PhpRenderer $engine)
+    public function setEngine(RendererInterface $engine)
     {
     	$this->engine = $engine;
     	return $this;
     }
 
     /**
-     * @return null|\Zend\View\Renderer\PhpRenderer
+     * @return \Zend\View\Renderer\RendererInterface
      */
     public function getEngine()
     {
         return $this->engine;
     }
-    
-    /**
-     * 
-     * @param string $originalTemplate
-     * @return \ZfJoacubCrud\DataGrid\Renderer\Html
-     */
-    public function setOriginalTemplate($originalTemplate)
-    {
-        $this->originalTemplate = $originalTemplate;
-        return $this;
-    }
-    
-    public function getOriginalTemplate()
-    {
-        return $this->originalTemplate;
-    }
-    
-    /**
-     * 
-     * @param AggregateResolverAwareInterface $resolver
-     * @return \ZfJoacubCrud\DataGrid\Renderer\Html
-     */
-    public function setViewResolver(AggregateResolver $resolver)
-    {
-        $this->resolver = $resolver;
-        return $this;
-        
-    }
-    
-    /**
-     * 
-     * @return \ZfJoacubCrud\DataGrid\Renderer\AggregateResolverAwareInterface;
-     */
-    public function getViewResolver()
-    {
-        return $this->resolver;
-    }
 
     /**
      * @param $template
-     * @return Html
+     * @return $this
      */
     public function setTemplate($template)
     {
@@ -118,10 +74,26 @@ class Html extends AbstractRenderer
     {
         return $this->template;
     }
+    
+    /**
+     *
+     * @param string $originalTemplate
+     * @return \ZfJoacubCrud\DataGrid\Renderer\Html
+     */
+    public function setServiceManager($sm)
+    {
+    	$this->sm = $sm;
+    	return $this;
+    }
+    
+    public function getServiceManager()
+    {
+    	return $this->sm;
+    }
 
     /**
      * @param $path
-     * @return Html
+     * @return $this
      */
     public function setCssFile($path)
     {
@@ -136,12 +108,20 @@ class Html extends AbstractRenderer
     public function render($variables = array())
     {
         $engine = $this->getEngine();
-        $viewResolver = $this->getViewResolver();
+        
+        $sm = $this->getServiceManager();
+        $controller = $sm->get('application');
+        $controller instanceof \Zend\Mvc\Application;
+        $controller->getMvcEvent()->setResult(new ViewModel());
+        $injectTemplateListener  = new InjectTemplateListener();
+        $injectTemplateListener->injectTemplate($controller->getMvcEvent());
+        $model = $controller->getMvcEvent()->getResult();
+        $originalTemplateBase = dirname($model->getTemplate());
+        
+        $viewResolver = $engine->resolver();
         
         //list
         $viewModel = new ViewModel($variables);
-        
-        $originalTemplateBase = dirname($this->getOriginalTemplate());
         
         $viewModel->setTemplate($originalTemplateBase . '/grid/list');
         if(false === $viewResolver->resolve($viewModel->getTemplate()))

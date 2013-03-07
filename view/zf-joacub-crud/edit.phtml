@@ -8,12 +8,12 @@ $actionsIcons = array(
 );
 ?>
 
-<h2><?php echo $this->translate($this->grid->getCaption()) ?></h2>
+<h2><?php echo $this->translate($this->gridManager->getGrid()->getCaption()) ?></h2>
 <p>
 	<a class="btn"
-		title="<?php echo $this->translate($this->grid->getCaptionBackTo()); ?>"
+		title="<?php echo $this->translate($this->gridManager->getGrid()->getCaptionBackTo()); ?>"
 		href="<?php echo $this->backUrl ?>"> <i class="icon-circle-arrow-left"></i>
-        <?php echo $this->translate($this->grid->getCaptionBackTo()); ?>
+        <?php echo $this->translate($this->gridManager->getGrid()->getCaptionBackTo()); ?>
         </a>
 </p>
 
@@ -23,7 +23,7 @@ $actionsIcons = array(
 	<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><?php echo $this->translate('actions')?> <span
 		class="caret"></span></a>
 	<ul class="dropdown-menu">
-                <?php foreach($this->grid->getActions() as $action) : ?>
+                <?php foreach($this->gridManager->getActions() as $action) : ?>
                     <li><a href=""
 			<?php if (isset($action['confirm-message'])): ?>
 			onclick="return DataGrid.confirmAction(this, '<?php echo $action['confirm-message'] ?>')"
@@ -49,7 +49,7 @@ $actionsIcons = array(
 			class="active" <?php endif;?>><a href="#data" data-toggle="tab">Edición
 				de datos</a></li>
 
-        <?php foreach ($this->grid->getDataPanels() as $key => $panel): ?>
+        <?php foreach ($this->gridManager->getGrid()->getDataPanels() as $key => $panel): ?>
             <li <?php if ($this->panel == $key): ?> class="active"
 			<?php endif;?>>
                 <?php if ($panel['is_ajax']): ?>
@@ -81,7 +81,7 @@ $actionsIcons = array(
             <?php echo $this->viewForm ?>
         </div>
 
-        <?php foreach ($this->grid->getDataPanels() as $key => $panel): ?>
+        <?php foreach ($this->gridManager->getGrid()->getDataPanels() as $key => $panel): ?>
             <div
 			class="tab-pane<?php if ($this->panel == $key): ?> active<?php endif;?>"
 			id="<?php echo $key ?>"></div>

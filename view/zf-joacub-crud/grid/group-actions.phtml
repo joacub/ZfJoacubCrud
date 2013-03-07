@@ -10,7 +10,7 @@ $actionsIcons = array('delete' => '<i class="icon-trash"></i>');
             <span class="caret"></span>
         </a>
         <ul class="dropdown-menu" role="menu" area-labeledby="drop-bulk">
-            <?php foreach($this->grid->getActions() as $action) : ?>
+            <?php foreach($this->gridManager->getActions() as $action) : ?>
                 <?php if ($action['bulk'] == true): ?>
                     <li>
                         <a tabindex="-1" onclick="DataGrid.action('<?php echo $action['action'] ?>')"

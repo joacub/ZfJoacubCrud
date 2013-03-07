@@ -2,26 +2,14 @@
 $messages = $this->flashMessenger()->render(
 		SuperMessenger\Controller\Plugin\SuperMessenger::SUCCESS_MESSAGE);
 if ($messages)
-	echo str_replace(array(
-		'&times;'
-	), array(
-		'<i class="icon-remove-circle"></i>'
-	), (string) $this->sxbAlert()->success($messages));
+	echo $this->sxbAlert($messages)->success();
 
 $messages = $this->flashMessenger()->render(
 		SuperMessenger\Controller\Plugin\SuperMessenger::ERROR_MESSAGE);
 if ($messages)
-	echo str_replace(array(
-		'&times;'
-	), array(
-		'<i class="icon-remove-circle"></i>'
-	), (string) $this->sxbAlert()->error($messages));
+	echo $this->sxbAlert($messages)->error();
 
 $messages = $this->flashMessenger()->render(
 		SuperMessenger\Controller\Plugin\SuperMessenger::INFO_MESSAGE);
 if ($messages)
-	echo str_replace(array(
-		'&times;'
-	), array(
-		'<i class="icon-remove-circle"></i>'
-	), (string) $this->sxbAlert()->info($messages));
+	echo $this->sxbAlert($messages)->info();

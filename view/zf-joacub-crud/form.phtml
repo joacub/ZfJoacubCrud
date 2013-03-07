@@ -8,13 +8,13 @@ use Zend\Form\Element\Textarea;
 $this->headLink()->appendStylesheet($this->basePath() . '/dlu-tw-bootstrap/css/dlu-tw-bootstrap.css');
 
 $columnsTranslatableKeys = null;
-if( $this->grid->getDataSource()->isTranslationTable() ) {
-    $columnsTranslatable = $this->grid->getDataSource()->getColumnsTranslatable();
+if( $this->gridManager->getGrid()->getDataSource()->isTranslationTable() ) {
+    $columnsTranslatable = $this->gridManager->getGrid()->getDataSource()->getColumnsTranslatable();
     $columnsTranslatableKeys = array_fill_keys($columnsTranslatable, true);
 }
  
-$grid = $this->grid;
-$form = $this->grid->getForm();
+$grid = $this->gridManager->getGrid();
+$form = $this->gridManager->getForm();
 $instanceView = $this;
 $form instanceof Form;
 
@@ -28,7 +28,7 @@ $instanceView)
     $form->setAttribute('method', 'post');
     
     //si contiene idiomas
-    if($instanceView->grid->getDataSource()->isTranslationTable()) {
+    if($instanceView->gridManager->getGrid()->getDataSource()->isTranslationTable()) {
         $localeElement = $form->get('locale');
         $form->setAttribute('id', 'datagrid-form-' . $localeElement->getValue());
     } else {

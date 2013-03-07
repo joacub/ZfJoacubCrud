@@ -4,10 +4,18 @@ namespace ZfJoacubCrud\DataGrid;
 
 use ZfJoacubCrud\DataGrid\DataSource;
 use ZfJoacubCrud\DataGrid\Column;
+use Zend\Di\ServiceLocator;
+use Zend\ServiceManager\ServiceManager;
+use Zend\Mvc\Controller\PluginManager;
+use Zend\Form\Form;
+use ZfJoacubCrud\DataGrid\DataSource\AbstractDataSource;
+use Nette\Diagnostics\Debugger;
+use Zend\Form\FormInterface;
+use Zend\Form\Fieldset;
+use ZfJoacubCrud\DataGrid\DataSource\DoctrineDbTableGateway;
 
 /**
- * Class DataGrid
- * @package AtDataGrid\DataGrid
+ *
  */
 class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
 {
@@ -36,6 +44,12 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
      * @var string
      */
     protected $identifierColumnName = 'id';
+    
+    /**
+     * 
+     * @var string
+     */
+    protected $titleColumnName = 'title';
 
     /**
      * @var null
@@ -78,9 +92,48 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
     /**
      * Data source
      *
-     * @var
+     * @var AbstractDataSource
      */
     protected $dataSource;
+
+    /**
+     * Renderer for rows (html, xml, etc.)
+     *
+     * @var
+     */
+    protected $renderer;
+
+    /**
+     * @var bool
+     */
+    protected $allowCreate = true;
+
+    /**
+     * @var bool
+     */
+    protected $allowDelete = true;
+
+    /**
+     * @var bool
+     */
+    protected $allowEdit = true;
+
+    /**
+     * @var \Zend\Form\Form
+     */
+    protected $form;
+    
+    protected $sl;
+
+    /**
+     * Actions for row
+     *
+     * @var array
+     */
+    protected $actions = array(
+        'edit'   => array('action' => 'edit', 'label' => 'View & Edit', 'bulk' => false, 'button' => true, 'class' => 'icon-eye-open'),
+        'delete' => array('action' => 'delete', 'label' => 'Delete', 'confirm-message' => 'Are you sure?', 'bulk' => true, 'button' => false)
+    );
 
     /**
      * Data panels
@@ -102,6 +155,8 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
         }
 
         $this->setOptions($options);
+        
+        $this->setIdentifierColumnName($this->getDataSource()->getIdentifierFieldName());
 
         /** @todo use event instead */
         $this->init();
@@ -141,6 +196,20 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
         return $this;
     }
     
+    public function setServiceManager($serviceLocator)
+    {
+        $this->sl = $serviceLocator;
+        return $this;
+    }
+    
+    /**
+     * @return ServiceManager
+     */
+    public function getserviceManager()
+    {
+        return $this->sl;
+    }
+    
     // METADATA
 
     /**
@@ -167,8 +236,8 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
      */
     public function setCaptionBackTo($caption)
     {
-    	$this->captionBackTo = $caption;
-    	return $this;
+        $this->captionBackTo = $caption;
+        return $this;
     }
     
     /**
@@ -176,7 +245,7 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
      */
     public function getCaptionBackTo()
     {
-    	return $this->captionBackTo;
+        return $this->captionBackTo;
     }
 
     // COLUMNS
@@ -199,6 +268,21 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
     public function getIdentifierColumnName()
     {
         return $this->identifierColumnName;
+    }
+    
+    public function setTitleColumnName($name)
+    {
+        $this->titleColumnName = $name;
+        return $this;
+    }
+    
+    /**
+     * 
+     * @return string
+     */
+    public function getTitleColumnName()
+    {
+        return $this->titleColumnName;
     }
 
     /**
@@ -269,7 +353,7 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
      * Return column object specified by it name
      *
      * @param $name
-     * @return \ZfJoacubCrud\Datagrid\Column
+     * @return \ZfJoacubCrud\DataGrid\Column\Column
      * @throws \Exception
      */
     public function getColumn($name)
@@ -449,7 +533,7 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
     /**
      * Get data source object
      *
-     * @return mixed
+     * @return AbstractDataSource
      */
     public function getDataSource()
     {
@@ -488,11 +572,207 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
             $this->itemsPerPage,
             $this->pageRange
         );
+    	
+    	if($this->getDataSource() instanceof DoctrineDbTableGateway) {
+    		
+    		$hydrator = new \DoctrineModule\Stdlib\Hydrator\DoctrineObject($this->getDataSource()->getEm(), $this->getDataSource()->getEntity());
+    		
+    		foreach($this->data as &$entity) {
+    			$entity = $hydrator->extract($entity);
+    		}
+    	}
 
         return $this->data;
     }
 
+    // ACTIONS
+
+    /**
+     * @param $name
+     * @param array $action
+     * @return DataGrid
+     * @throws \Exception
+     */
+    public function addAction($name, $action = array())
+    {
+        if (!is_array($action)) {
+            throw new \Exception('Row action must be an array with `action`, `label` and `confirm-message` keys');
+        }
+
+        if (!array_key_exists('action', $action)) {
+            throw new \Exception('Row action must be an array with `action`, `label` and `confirm-message` keys');
+        }
+
+        if (!array_key_exists('label', $action)) {
+            throw new \Exception('Row action must be an array with `action`, `label` and `confirm-message` keys');
+        }
+
+        if (!array_key_exists('bulk', $action)) {
+            $action['bulk'] = true;
+        }
+
+        if (!array_key_exists('button', $action)) {
+            $action['button'] = false;
+        }
+
+        $this->actions[$name] = $action;
+        return $this;
+    }
+
+    /**
+     * @param array $actions
+     * @return DataGrid
+     */
+    public function addActions($actions = array())
+    {
+        foreach ($actions as $name => $action) {
+            $this->addAction($name, $action);
+        }
+        
+        return $this;
+    }
+
+    /**
+     * @param $name
+     * @return DataGrid
+     */
+    public function removeAction($name)
+    {
+        if (array_key_exists($name, $this->actions)) {
+            unset($this->actions[$name]);
+        }
+        
+        return $this;
+    }
+
+    /**
+     * @param $name
+     * @return bool
+     */
+    public function getAction($name)
+    {
+        if (array_key_exists($name, $this->actions)) {
+            return $this->actions[$name];
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array
+     */
+    public function getActions()
+    {
+        return $this->actions;
+    }
+
+    /**
+     * @return array
+     */
+    public function getButtonActions()
+    {
+        $actions = array();
+
+        foreach ($this->actions as $action) {
+            if ($action['button'] == true) {
+                $actions[] = $action;
+            }
+        }
+
+        return $actions;
+    }
+
     // CRUD
+
+    /**
+     * @param bool $flag
+     * @return DataGrid
+     */
+    public function setAllowCreate($flag = true)
+    {
+        $this->allowCreate = $flag;
+        return $this;
+    }
+
+    /**
+     * Alias for setAllowCreate
+     *
+     * @param bool $flag
+     * @return DataGrid
+     */
+    public function allowCreate($flag = true)
+    {
+        $this->setAllowCreate($flag);
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAllowCreate()
+    {
+        return $this->allowCreate;
+    }
+
+    /**
+     * @param bool $flag
+     * @return DataGrid
+     */
+    public function setAllowDelete($flag = true)
+    {
+        $this->allowDelete = $flag;
+        return $this;
+    }
+
+    /**
+     * Alias for setAllowDelete
+     *
+     * @param bool $flag
+     * @return DataGrid
+     */
+    public function allowDelete($flag = true)
+    {
+        $this->setAllowDelete($flag);
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAllowDelete()
+    {
+        return $this->allowDelete;
+    }
+
+    /**
+     * @param bool $flag
+     * @return DataGrid
+     */
+    public function setAllowEdit($flag = true)
+    {
+        $this->allowEdit = $flag;
+        return $this;
+    }
+
+    /**
+     * Alias for setAllowEdit
+     *
+     * @param bool $flag
+     * @return DataGrid
+     */
+    public function allowEdit($flag = true)
+    {
+        $this->setAllowEdit($flag);
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAllowEdit()
+    {
+        return $this->allowEdit;
+    }
 
     /**
      * Insert new row to grid
@@ -536,6 +816,112 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
         $this->getDataSource()->delete($identifier);
     }
 
+    // FORMS
+
+    /**
+     * Generate form for create/edit row
+     */
+    public final function getForm($options = array())
+    {
+        if ($this->form == null) {
+        	
+        	if(method_exists($this, 'getCustomForm') && $this->getCustomForm($options) != __CLASS__) {
+        		$form = $this->getCustomForm($options);
+        	} else {
+        		//obtenemos el formulario automaticamente de la entidad en caso de no tener un formulario personalizado
+        		$form = $this->getserviceManager()->get('formGenerator')
+        		->setClass($this->getDataSource()->getEntity())
+        		->getForm();
+        	}
+        		
+            //prepara el formulario 
+            // quita elementos que tenga que quitar y mas
+            $this->prepareForm($form);
+            
+        }
+
+        return $this->form;
+    }
+    
+    protected function getCustomForm($options = array()) 
+    {
+    	return __CLASS__;	
+    }
+    
+    public function prepareForm(FormInterface $form)
+    {
+    	// Collect elements
+    	foreach ($this->getColumns() as $column) {
+    	
+    	
+    		$formElement = $form->get($column->getName());
+    		
+    		if(!$formElement) {
+    			$fieldsets = $form->getFieldsets();
+    			
+    			foreach($fieldsets as $fieldset) {
+    				$formElement = $fieldset->get($column->getName());
+    				if($formElement)
+    					break;
+    			}
+    		}
+    		
+    		if($formElement) {
+    			$optionsElement = $column->getFormElement()->getOptions();
+    			$column->setFormElement($formElement);
+    			$formElement->setOptions($optionsElement + $formElement->getOptions());
+    		}
+    	
+    		if (!$column->isVisibleInForm()) {
+    			
+    			$form->remove($column->getName());
+    			$form->getInputFilter()->remove($column->getName());
+    			
+    			if(isset($fieldset)) {
+    				$form->getInputFilter()->get($fieldset->getName())->remove(($column->getName()));
+    				$fieldset->remove($column->getName());
+    				$fieldset = false;
+    			}
+    			
+    			continue;
+    		}
+    		continue;
+    		/* @var \Zend\Form\Element */
+    		$element = $column->getFormElement();
+    	
+    		if(!$form->get($column->getName())->getLabel()) {
+    			$form->get($column->getName())->setLabel($column->getLabel());
+    		}
+    	
+    	}
+    	
+    	if(!$this->getserviceManager()->get('response')->getHeaders()->has('ZfJoacubFormJqueryValidate')) {
+    		//Hash element to prevent CSRF attack
+    		$csrf = new \Zend\Form\Element\Csrf('hash');
+    		$form->add($csrf);
+    	}
+    	
+    	// Use this method to add additional element to form
+    	// @todo Use Event instead
+    	$form = $this->addExtraFormElements($form);
+    	
+    	$this->form = $form;
+    	$manager = $this->getserviceManager()->get('ZfJoacubFormJqueryValidate\FormManager');
+    	$manager instanceof \Zend\Mvc\Controller\PluginManager;
+    	
+    	$manager->setService('create-form', $this->form);
+    	
+    	return $form;
+    }
+
+    /**
+     * @param $form
+     * @return mixed
+     */
+    public function addExtraFormElements($form)
+    {
+        return $form;
+    }
 
     // FILTERS
 
@@ -561,14 +947,11 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
     {
         $columns = $this->getColumns();
 
-        /** @var \Zend\Db\Sql\Select $select  */
-        $select = $this->getDataSource()->getSelect();
-
         foreach ($columns as $column) {
             $filters = $column->getFilters();
 
             foreach ($filters as $filter) {
-                $filter->apply($select, $column, $values[$filter->getName()]);
+                $filter->apply($this->getDataSource(), $column, $values[$filter->getName()]);
             }
         }
 
@@ -600,6 +983,43 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
         $form->add($apply);
         
         return $form;
+    }
+
+    // RENDERING
+
+    /**
+     * @todo Use interface here
+     * @param $renderer
+     * @return DataGrid
+     */
+    public function setRenderer(\ZfJoacubCrud\DataGrid\Renderer\AbstractRenderer $renderer)
+    {
+        $this->renderer = $renderer;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRenderer()
+    {
+        return $this->renderer;
+    }
+
+    /**
+     * Render grid with current renderer
+     *
+     * @return mixed
+     */
+    public function render()
+    {
+        $data                = array();
+        $data['grid']        = $this;
+        $data['columns']     = $this->getColumns();
+        $data['rows']        = $this->getData();
+        $data['paginator']   = $this->getDataSource()->getPaginator();
+
+        return $this->getRenderer()->render($data);
     }
 
     /**
@@ -782,20 +1202,5 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
     public function getIterator()
     {
         return new \ArrayIterator($this->columns);
-    }
-    
-    public function setTitleColumnName($name)
-    {
-    	$this->titleColumnName = $name;
-    	return $this;
-    }
-    
-    /**
-     *
-     * @return string
-     */
-    public function getTitleColumnName()
-    {
-    	return $this->titleColumnName;
     }
 }

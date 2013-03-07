@@ -3,8 +3,8 @@
 namespace ZfJoacubCrud\DataGrid\Filter\Sql;
 
 use ZfJoacubCrud\DataGrid\Filter;
-use ZfJoacubCrud\DataGrid\DataSource\DoctrineDbTableGateway;
 use ZfJoacubCrud\DataGrid\Filter\Parameter\ParameterId;
+use Doctrine\ORM\QueryBuilder;
 
 class LessThan extends Filter\AbstractFilter
 {
@@ -19,10 +19,10 @@ class LessThan extends Filter\AbstractFilter
         $value = $this->applyValueType($value);
 
         if (strlen($value) > 0) {
-            if($dataSource instanceof DoctrineDbTableGateway) {
-                $qb = $dataSource->getQueryBuilder();
+            if($dataSource instanceof QueryBuilder) {
+                $qb = $dataSource;
                 $parameter = ParameterId::getParameter(__CLASS__, $column->getName());
-                $qb->andWhere($qb->expr()->lt($dataSource->getEntity() . '.' . $column->getName(), ':' . $parameter));
+                $qb->andWhere($qb->expr()->lt($qb->getRootAlias() . '.' . $column->getName(), ':' . $parameter));
                 $qb->setParameter($parameter, $value);
             } else {
                 $dataSource->where(

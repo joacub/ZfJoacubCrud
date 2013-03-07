@@ -3,8 +3,8 @@
 namespace ZfJoacubCrud\DataGrid\Filter\Sql;
 
 use ZfJoacubCrud\DataGrid\Filter;
-use ZfJoacubCrud\DataGrid\DataSource\DoctrineDbTableGateway;
 use ZfJoacubCrud\DataGrid\Filter\Parameter\ParameterId;
+use Doctrine\ORM\QueryBuilder;
 
 class Equal extends Filter\AbstractFilter
 {
@@ -19,10 +19,10 @@ class Equal extends Filter\AbstractFilter
         $value = $this->applyValueType($value);
 
         if (isset($value) && !empty($value)) {
-            if($dataSource instanceof DoctrineDbTableGateway) {
-                $qb = $dataSource->getSelect();
+            if($dataSource instanceof QueryBuilder) {
+                $qb = $dataSource;
                 $parameter = ParameterId::getParameter(__CLASS__, $column->getName());
-                $qb->andWhere($qb->expr()->eq($dataSource->getEntity() . '.' . $column->getName(), ':' . $parameter))
+                $qb->andWhere($qb->expr()->eq($qb->getRootAlias() . '.' . $column->getName(), ':' . $parameter))
                 ->setParameter($parameter, $value);
             } else {
                 //$columnName = $this->_findTableColumnName($select, $column->getName());

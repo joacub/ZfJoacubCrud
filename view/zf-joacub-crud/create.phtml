@@ -2,12 +2,12 @@
 <?php $this->headScript()->appendFile($this->basePath() . '/js/zf-joacub-crud/jquery.blockUI.js') ?>
 <?php $this->headLink()->appendStylesheet($this->basePath() . '/css/zf-joacub-crud/datagrid.css') ?>
 
-<h2><?php echo $this->translate($this->grid->getCaption()) ?></h2>
+<h2><?php echo $this->translate($this->gridManager->getGrid()->getCaption()) ?></h2>
 <p>
 	<a class="btn"
-		title="<?php echo $this->translate($this->grid->getCaptionBackTo()); ?>"
+		title="<?php echo $this->translate($this->gridManager->getGrid()->getCaptionBackTo()); ?>"
 		href="<?php echo $this->backUrl ?>"> <i class="icon-circle-arrow-left"></i>
-        <?php echo $this->translate($this->grid->getCaptionBackTo()); ?>
+        <?php echo $this->translate($this->gridManager->getGrid()->getCaptionBackTo()); ?>
         </a>
 </p>
 <?php echo $this->render('zf-joacub-crud/form')?>

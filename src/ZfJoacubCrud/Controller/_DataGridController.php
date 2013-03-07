@@ -16,7 +16,7 @@ use CustomediaGestionSuppliers\Entity\Suppliers;
 use DoctrineModule\Stdlib\Hydrator\Strategy\DisallowRemoveByValue;
 use Zend\Form\FormInterface;
 
-class DataGridController extends AbstractActionController
+class _DataGridController extends AbstractActionController
 {
     /**
      * @var \ZfJoacubCrud\DataGrid\DataGrid

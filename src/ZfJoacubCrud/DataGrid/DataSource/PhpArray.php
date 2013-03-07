@@ -2,8 +2,6 @@
 
 namespace ZfJoacubCrud\DataGrid\DataSource;
 
-use ZfJoacubCrud\DataGrid\Column;
-
 class PhpArray extends AbstractDataSource
 {
     /**
@@ -66,4 +64,18 @@ class PhpArray extends AbstractDataSource
     public function delete($key)
     {
     }
+    
+    public function fetch($listType, $order, $currentPage, $itemsPerPage, $pageRange)
+    {
+    }
+    
+	/* (non-PHPdoc)
+	 * @see \ZfJoacubCrud\DataGrid\DataSource\AbstractDataSource::find()
+	 */
+	public function find ($id)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
 }

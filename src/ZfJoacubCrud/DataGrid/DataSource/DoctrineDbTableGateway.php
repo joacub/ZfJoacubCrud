@@ -345,6 +345,7 @@ class DoctrineDbTableGateway extends AbstractDataSource
 	        $paginator->setCurrentPageNumber($currentPage)
                       ->setItemCountPerPage($itemsPerPage)
                       ->setPageRange($pageRange);
+	        
 	        return $paginator->getItemsByPage($currentPage);
     	} elseif ($listType == AbstractDataSource::LIST_TYPE_TREE) {
     	    $items = $this->getTableGateway()->select();
@@ -384,8 +385,9 @@ class DoctrineDbTableGateway extends AbstractDataSource
     	    $entity = new $entityName();
     	    $entity->populateData($data);
     	}
-    	    
+    	
         $em->persist($entity);
+        $em->flush();
         
         return $entity;
     }
@@ -408,6 +410,7 @@ class DoctrineDbTableGateway extends AbstractDataSource
         }
        
         $em->persist($entity);
+        $em->flush();
         return $entity;
     }
 
@@ -420,6 +423,7 @@ class DoctrineDbTableGateway extends AbstractDataSource
         $em = $this->getEm();
         $entity = $this->find($key);
         $em->remove($entity);
+        $em->flush();
         return $this;
     }    
     

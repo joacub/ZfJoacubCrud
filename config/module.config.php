@@ -10,7 +10,7 @@ return array(
     ),
     'controllers' => array(
         'invokables' => array(
-            'ZfJoacubCrud\Controller\DataGrid'  => 'ZfJoacubCrud\Controller\DataGridController'
+            //'ZfJoacubCrud\Controller\DataGrid'  => 'ZfJoacubCrud\Controller\DataGridController'
         ),
     ),
 

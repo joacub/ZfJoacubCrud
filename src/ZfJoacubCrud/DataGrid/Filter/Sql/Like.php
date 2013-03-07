@@ -5,6 +5,7 @@ namespace ZfJoacubCrud\DataGrid\Filter\Sql;
 use ZfJoacubCrud\DataGrid\Filter;
 use ZfJoacubCrud\DataGrid\DataSource\DoctrineDbTableGateway;
 use ZfJoacubCrud\DataGrid\Filter\Parameter\ParameterId;
+use Doctrine\ORM\QueryBuilder;
 
 class Like extends Filter\AbstractFilter
 {
@@ -23,14 +24,15 @@ class Like extends Filter\AbstractFilter
             //$columnName = $this->findTableColumnName($select, $column->getName());
             $columnName = $column->getName();
             
-            if($dataSource instanceof DoctrineDbTableGateway) {
+            if($dataSource instanceof QueryBuilder) {
+            	$dataSource instanceof \Doctrine\ORM\QueryBuilder;
                 $parameter = ParameterId::getParameter(__CLASS__, $columnName);
-                $qb = $dataSource->getSelect();
+                $qb = $dataSource;
                 $qb->andWhere(
                     $qb->expr()
                         ->orx(
                         $qb->expr()
-                            ->like($dataSource->getEntity() . '.' . $columnName, ':' . $parameter)))->setParameter($parameter, '%' . $value . '%');
+                            ->like($qb->getRootAlias() . '.' . $columnName, ':' . $parameter)))->setParameter($parameter, '%' . $value . '%');
             } else {
                 // @todo Add param for like template
                 $spec = function (\Zend\Db\Sql\Where $where) use($columnName, 

@@ -17,17 +17,17 @@ class Column
     protected $label;
 
     /**
-     * Visibility in grid
+     * Visibility in grid
      *
      * @var boolean
-     */
+     */
     protected $visible = true;
 
     /**
-     * Visibility in add/edit form
+     * Visibility in add/edit form
      *
      * @var boolean
-     */
+     */
     protected $visibleInForm = true;
 
     /**
