@@ -12,6 +12,7 @@ use ZfJoacubCrud\DataGrid\DataSource\AbstractDataSource;
 use Nette\Diagnostics\Debugger;
 use Zend\Form\FormInterface;
 use Zend\Form\Fieldset;
+use ZfJoacubCrud\DataGrid\DataSource\DoctrineDbTableGateway;
 
 /**
  *
@@ -572,11 +573,13 @@ class DataGrid implements \Countable, \IteratorAggregate, \ArrayAccess
             $this->pageRange
         );
     	
-    	if(is_object($this->data)) {
-    	    foreach($this->data as &$entity) {
-    	        if(!is_object($entity))  break; 
-    	        $entity = $entity->getArrayCopy();
-    	    }
+    	if($this->getDataSource() instanceof DoctrineDbTableGateway) {
+    		
+    		$hydrator = new \DoctrineModule\Stdlib\Hydrator\DoctrineObject($this->getDataSource()->getEm(), $this->getDataSource()->getEntity());
+    		
+    		foreach($this->data as &$entity) {
+    			$entity = $hydrator->extract($entity);
+    		}
     	}
 
         return $this->data;
