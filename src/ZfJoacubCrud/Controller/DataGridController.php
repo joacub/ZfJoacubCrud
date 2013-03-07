@@ -224,8 +224,9 @@ class DataGridController extends AbstractActionController
             
             $form->bind($item);
         }
-        if(is_object($item)) {
-            $item = $item->getArrayCopy();
+        
+        if($grid->getDataSource() instanceof DoctrineDbTableGateway) {
+            $item = $form->getHydrator()->extract($item);
         }
         
         if(!$grid->getCaption())
