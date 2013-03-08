@@ -171,8 +171,7 @@ class Manager
     public final function getForm($options = array())
     {
     	if ($this->form == null) {
-    		 
-    		if(method_exists($this, 'getCustomForm') && $this->getCustomForm($options) != __CLASS__) {
+    		if(method_exists($this, 'getCustomForm') && $this->getCustomForm($options) != false) {
     			$form = $this->getCustomForm($options);
     		} else {
     			//obtenemos el formulario automaticamente de la entidad en caso de no tener un formulario personalizado
@@ -192,7 +191,7 @@ class Manager
     
     protected function getCustomForm($options = array())
     {
-    	return __CLASS__;
+    	return null;
     }
     
     public function prepareForm(FormInterface $form)
