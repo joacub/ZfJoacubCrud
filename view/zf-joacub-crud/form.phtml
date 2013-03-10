@@ -44,26 +44,23 @@ $instanceView)
     echo $instanceView->formTwb()->openTag($form, $formType);
     ?>
     <?php 
-    foreach ($form->getElements() as $element): 
-    
-    $options = $element->getOption('ckeditor');
-    
-    if($element->getOption('displayOptions'))
-    	$displayOptions['elements'][$element->getName()] = $element->getOption('displayOptions');
-    
-    if(is_array($options)) {
-        $this->JoacubCKEditor(
-            $element->getName(),
-            (array) $element->getOption('ckeditor')
-        );
-    }
-    
-    $options = $element->getOption('JoacubUploader');
-    
-    echo $options;
-    
-    endforeach;
           echo $instanceView->formFieldsetTwb($form, null, $displayOptions);
+          
+          foreach ($form->getElements() as $element):
+          
+          $options = $element->getOption('ckeditor');
+          
+          if($element->getOption('displayOptions'))
+          	$displayOptions['elements'][$element->getName()] = $element->getOption('displayOptions');
+          
+          if(is_array($options)) {
+          	$this->JoacubCKEditor(
+          			$element->getName(),
+          			(array) $element->getOption('ckeditor')
+          	);
+          }
+          
+          endforeach;
           ?>  
 
 <div class="form-actions">

@@ -411,7 +411,7 @@ class Manager
     /**
      * @return ServiceManager
      */
-    public function getserviceManager()
+    public function getServiceManager()
     {
     	return $this->sl;
     }
