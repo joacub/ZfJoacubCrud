@@ -171,6 +171,7 @@ abstract class AbstractDataGridController extends AbstractActionController
         
         if ($this->getRequest()->isPost() && $form->isValid()) {
             $data = $this->preSave($form);
+            
             $grid->save($data, $itemId);
             $this->postSave($grid, $itemId);
 

@@ -44,7 +44,6 @@ $instanceView)
     echo $instanceView->formTwb()->openTag($form, $formType);
     ?>
     <?php 
-          echo $instanceView->formFieldsetTwb($form, null, $displayOptions);
           
           foreach ($form->getElements() as $element):
           
@@ -60,7 +59,11 @@ $instanceView)
           	);
           }
           
+          
           endforeach;
+          
+          echo $instanceView->formFieldsetTwb($form, null, $displayOptions);
+          
           ?>  
 
 <div class="form-actions">
