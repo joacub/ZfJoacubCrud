@@ -17,9 +17,9 @@ $grid = $this->gridManager->getGrid();
 $form = $this->gridManager->getForm();
 $instanceView = $this;
 $form instanceof Form;
-
+$originalId = $form->getAttribute('id');
 $printForm = function ($displayOptions = array()) use($form, $columnsTranslatableKeys, 
-$instanceView)
+$instanceView, $originalId)
 {
     $formType = 'horizontal';
     
@@ -30,9 +30,9 @@ $instanceView)
     //si contiene idiomas
     if($instanceView->gridManager->getGrid()->getDataSource()->isTranslationTable()) {
         $localeElement = $form->get('locale');
-        $form->setAttribute('id', 'datagrid-form-' . $localeElement->getValue());
+        $form->setAttribute('data-lang', 'datagrid-form-' . $localeElement->getValue());
     } else {
-        $form->setAttribute('id', 'datagrid-form');
+        $form->setAttribute('data-lang', 'datagrid-form');
     }
     
     $form->setAttribute('class', 'form-horizontal grid-form');
@@ -40,12 +40,14 @@ $instanceView)
     $form->prepare();
     
     
-    $instanceView->zfJoacubFormJqueryValidatePrepare('create-form');
+    $instanceView->zfJoacubFormJqueryValidatePrepare($originalId);
     echo $instanceView->formTwb()->openTag($form, $formType);
-    ?>
-    <?php 
-          
-          foreach ($form->getElements() as $element):
+	?>
+    <?php
+	
+    $uploaders = array();
+	foreach ($form->getElements() as $element) :
+		
           
           $options = $element->getOption('ckeditor');
           
@@ -61,10 +63,9 @@ $instanceView)
           
           
           endforeach;
-          
           echo $instanceView->formFieldsetTwb($form, null, $displayOptions);
           
-          ?>  
+          ?>
 
 <div class="form-actions">
 	<button type="submit" data-loading-text="Guardando..."
@@ -137,7 +138,7 @@ if($grid->getDataSource()->isTranslationTable()) :
 </div>
 
 
- <?php else :
+<?php else :
     $printForm();
     ?>
 

@@ -6,6 +6,7 @@ use ZfJoacubCrud\DataGrid\Renderer\AbstractRenderer;
 use Zend\Form\Form;
 use Zend\Form\FormInterface;
 use Zend\ServiceManager\ServiceManager;
+use Nette\Diagnostics\Debugger;
 
 /**
  * Class Manager
@@ -252,11 +253,7 @@ class Manager
     	$form = $this->addExtraFormElements($form);
     	 
     	$this->form = $form;
-    	$manager = $this->getserviceManager()->get('ZfJoacubFormJqueryValidate\FormManager');
-    	$manager instanceof \Zend\Mvc\Controller\PluginManager;
-    	 
-    	$manager->setService('create-form', $this->form);
-    	 
+    	
     	return $form;
     }
 
