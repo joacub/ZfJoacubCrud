@@ -39,8 +39,11 @@ $instanceView, $originalId)
     
     $form->prepare();
     
-    
-    $instanceView->strokerFormPrepare($originalId);
+    try {
+    	$instanceView->strokerFormPrepare($originalId);
+    } catch (\Exception $e) {
+    	
+    }
     echo $instanceView->formTwb()->openTag($form, $formType);
 	?>
     <?php
